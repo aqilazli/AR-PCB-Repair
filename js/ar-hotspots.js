@@ -18,11 +18,11 @@ export function buildHotspots(components) {
     const g = new THREE.Group();
     g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.03, -cmp.y*MODEL_SIZE);  // sit just above the board
     const disc = new THREE.Mesh(
-      new THREE.CircleGeometry(MODEL_SIZE*0.05, 24),
-      new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
+      new THREE.CircleGeometry(MODEL_SIZE*0.018, 24),
+      new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.95, side:THREE.DoubleSide }));
     disc.userData.cid = cmp.id;
     const ring = new THREE.Mesh(
-      new THREE.RingGeometry(MODEL_SIZE*0.06, MODEL_SIZE*0.08, 24),
+      new THREE.RingGeometry(MODEL_SIZE*0.024, MODEL_SIZE*0.032, 24),
       new THREE.MeshBasicMaterial({ color:0xffd60a, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
     const label = makeLabel(cmp.name || cmp.id);
     label.position.set(0, MODEL_SIZE*0.14, 0);   // float the name above the dot

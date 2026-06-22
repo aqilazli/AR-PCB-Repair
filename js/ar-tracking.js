@@ -45,7 +45,7 @@ export async function startCamera() {
 
 export function startTracking() {
   try {
-    detector = new AR.Detector({ dictionaryName: 'ARUCO', maxHammingDistance: 4 });
+    detector = new AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12' });
     posit    = new POS.Posit(MODEL_SIZE, 0);
   } catch (e) { toast('AR init failed: ' + e.message); }
 }
