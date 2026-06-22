@@ -13,8 +13,13 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 
 /* ---- Intro screen ---- */
 .screen { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(circle at 50% 30%, #16324f, #0b0e13 70%); padding:20px; }
-.intro-card { max-width:420px; text-align:center; }
+  background:radial-gradient(circle at 50% 30%, #16324f, #0b0e13 70%); padding:20px; overflow:hidden; }
+.intro-bg { position:absolute; inset:0; background-size:cover; background-position:center; z-index:0; }
+.intro-bg.b1 { background-image:url('assets/BG1.PNG'); }
+.intro-bg.b2 { background-image:url('assets/BG2.PNG'); opacity:0; animation:bgXfade 12s ease-in-out infinite; }
+@keyframes bgXfade { 0%,40%{opacity:0} 50%,90%{opacity:1} 100%{opacity:0} }
+.intro-shade { position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, #0b0e13aa, #0b0e13dd); }
+.intro-card { position:relative; z-index:2; max-width:420px; text-align:center; }
 .sdg-badge { display:inline-block; background:#2e7d32; color:#fff; font-size:12px; font-weight:600;
   padding:5px 12px; border-radius:20px; margin-bottom:16px; }
 .intro-card h1 { font-size:30px; line-height:1.1; }
