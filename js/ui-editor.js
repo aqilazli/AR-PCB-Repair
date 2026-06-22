@@ -9,7 +9,8 @@ import { $, toast } from './utils.js';
 import { state } from './state.js';
 import * as Lib from './library.js';
 import { buildHotspots } from './ar-hotspots.js';
-import { setModel } from './ar-model.js';
+import { setModel, screenToBoardXY } from './ar-model.js';
+import { setPlaceMode } from './ar-controls.js';
 
 let editId = null;   // board currently being edited
 
@@ -84,9 +85,11 @@ function render() {
   (board?.components || []).forEach(c => {
     const row = document.createElement('div'); row.className = 'ed-row';
     row.innerHTML = `<b>${c.id}</b> — ${c.name} <span class="ed-fault">${c.fault||''}</span>`;
+    const place = document.createElement('button'); place.className = 'ed-del'; place.textContent = '📍'; place.title = 'Tap to place on board';
+    place.onclick = () => startPlace(c.id);
     const del = document.createElement('button'); del.className = 'ed-del'; del.textContent = '🗑';
     del.onclick = () => { Lib.removeComponent(editId, c.id); render(); refreshAR(); };
-    row.appendChild(del); list.appendChild(row);
+    row.appendChild(place); row.appendChild(del); list.appendChild(row);
   });
 }
 
@@ -125,6 +128,24 @@ function importFile(e) {
   r.onload = () => { try { Lib.importJSON(r.result); editId = Lib.getBoardIds()[0]; render(); refreshAR(); toast('Library imported'); }
                      catch (err) { toast('Invalid JSON: ' + err.message); } };
   r.readAsText(f); e.target.value = '';
+}
+
+// Tap-to-place: hide the editor, let the user tap the real component on the
+// board; the dot snaps there and its x/y is saved.
+function startPlace(cid) {
+  if (editId !== state.boardId) { toast('Scan this board first, then place'); return; }
+  $('editor').classList.add('hidden');
+  toast('Tap ' + cid + ' on the board');
+  setPlaceMode((cx, cy) => {
+    const xy = screenToBoardXY(cx, cy);
+    if (!xy) { toast('Missed — tap on the board model'); return false; }   // stay in place mode
+    Lib.updateComponent(editId, cid, xy);
+    state.board = Lib.getBoard(editId);
+    buildHotspots(state.board.components);
+    toast('Placed ' + cid + ' ✓');
+    $('editor').classList.remove('hidden'); render();
+    return true;
+  });
 }
 
 function loadFileInto(e, key, isModel) {

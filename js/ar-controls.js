@@ -12,8 +12,10 @@ const ROT_SENS = 0.006;   // gentler rotation
 const pointers = new Map();
 let sx = 0, sy = 0, moved = 0, lastDist = 0;
 let tapCb = () => {};
+let placeCb = null;       // when set, a tap calibrates a component instead of opening info
 
 export function onTap(cb) { tapCb = cb; }
+export function setPlaceMode(cb) { placeCb = cb; }   // pass null to cancel
 
 export function initControls() {
   const c = $('three');
@@ -46,8 +48,13 @@ function up(e) {
   const wasSingle = pointers.size === 1;
   pointers.delete(e.pointerId);
   if (pointers.size < 2) lastDist = 0;
-  if (wasSingle && moved < 8) {                   // tap = inspect
-    const cid = hitTest(e.clientX, e.clientY);
+  if (wasSingle && moved < 8) {
+    if (placeCb) {                                // calibration tap
+      const done = placeCb(e.clientX, e.clientY);
+      if (done) placeCb = null;
+      return;
+    }
+    const cid = hitTest(e.clientX, e.clientY);    // normal tap = inspect
     if (cid) tapCb(cid);
   }
 }

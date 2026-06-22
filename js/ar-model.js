@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader }   from 'three/addons/loaders/DRACOLoader.js';
-import { contentGroup, MODEL_SIZE, addFrameTask } from './ar-core.js';
+import { contentGroup, camera, MODEL_SIZE, addFrameTask } from './ar-core.js';
 import { toast } from './utils.js';
 
 let boardModel = null, baseScaleNum = 1, userScale = 1;
@@ -43,8 +43,22 @@ export function loadModel(url = 'assets/3d/pcb.glb') {
 }
 
 // input → model transforms (called by ar-controls.js)
-export function dragRotate(dx, dy, sens) { targetEuler.y += dx*sens; targetEuler.x += dy*sens; }
+export function dragRotate(dx, dy, sens) { targetEuler.y -= dx*sens; targetEuler.x += dy*sens; }
 export function zoomBy(mult) { userScale = Math.max(0.4, Math.min(3, userScale*mult)); }
+
+// Tap-to-place calibration: project a screen tap onto the board model and
+// return the component-space {x,y} (range about -0.5..0.5), or null if it
+// missed the model. Used by the editor's 'Place' tool.
+const _ray = new THREE.Raycaster(), _ndc = new THREE.Vector2(), _v = new THREE.Vector3();
+export function screenToBoardXY(cx, cy) {
+  if (!boardModel) return null;
+  _ndc.x = (cx/innerWidth)*2 - 1; _ndc.y = -(cy/innerHeight)*2 + 1;
+  _ray.setFromCamera(_ndc, camera);
+  const hits = _ray.intersectObject(boardModel, true);
+  if (!hits.length) return null;
+  _v.copy(hits[0].point); contentGroup.worldToLocal(_v);   // world -> content-local
+  return { x: _v.x / MODEL_SIZE, y: -_v.z / MODEL_SIZE };
+}
 
 // apply eased rotation + zoom to the WHOLE content group (model + hotspots),
 // so the component points stay glued to the board when you rotate or zoom.

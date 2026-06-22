@@ -96,6 +96,8 @@ function setTrack(on) {
   pill.textContent = on ? '● Board locked' : '● Searching…';
   pill.className = 'pill ' + (on ? 'found' : 'lost');
   $('scanHint').style.opacity = on ? 0 : 1;
+  const frame = $('scanFrame');               // viewfinder only while searching
+  if (frame) frame.style.display = on ? 'none' : 'block';
 }
 
 addFrameTask(detect);

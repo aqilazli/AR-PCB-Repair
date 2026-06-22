@@ -45,7 +45,13 @@
 
   <div id="midDisplay" class="mid">marker id: —</div>
 
-  <div id="scanHint" class="scanhint">Point at the board · keep the marker in view</div>
+  <!-- scan viewfinder (shown while searching, hidden once locked) -->
+  <div id="scanFrame" class="scanframe">
+    <span class="c tl"></span><span class="c tr"></span><span class="c bl"></span><span class="c br"></span>
+    <div class="scanline"></div>
+  </div>
+
+  <div id="scanHint" class="scanhint">Point at the marker to scan</div>
 
   <!-- diagnostic SOP bar (bottom) -->
   <div id="sop" class="sop hidden">
