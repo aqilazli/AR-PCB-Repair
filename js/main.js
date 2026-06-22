@@ -47,6 +47,10 @@ let lastGlb = 'assets/3d/pcb.glb';
 $('startBtn').addEventListener('click', async () => {
   const ok = await startCamera();
   if (!ok) return;
+  // go fullscreen so the browser bar doesn't cover the AR view (Android Chrome)
+  const el = document.documentElement;
+  const fs = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (fs) { try { fs.call(el); } catch (e) {} }
   $('intro').classList.add('hidden');
   $('hud').classList.remove('hidden');
   startTracking();
