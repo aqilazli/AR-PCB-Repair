@@ -26,12 +26,12 @@ export function buildHotspots(components) {
       new THREE.RingGeometry(MODEL_SIZE*0.024, MODEL_SIZE*0.032, 24),
       new THREE.MeshBasicMaterial({ color:0xffd60a, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
 
-    // ── mind-map callout: label offset away from the board, leader line back to the dot ──
-    const ang = (i / Math.max(1, n)) * Math.PI * 2;          // fan labels around the board
-    const R   = MODEL_SIZE * 0.55;
-    const lx  = Math.cos(ang) * R;
-    const lz  = Math.sin(ang) * R;
-    const ly  = MODEL_SIZE * (0.22 + (i % 3) * 0.10);        // stagger height so they don't collide
+    // ── callout: labels pulled OUT of the model into a readable vertical column,
+    //    leader line from the dot to its label (no overlapping the board) ──
+    const side = (cmp.x >= 0) ? 1 : -1;                      // dot on right half -> column on right
+    const lx = side * MODEL_SIZE * 0.85;                     // push clear of the board
+    const ly = MODEL_SIZE * (0.55 + i * 0.22);               // stack upward, evenly spaced
+    const lz = 0;
     const label = makeLabel(cmp.name || cmp.id);
     label.position.set(lx, ly, lz);
     const lineGeo = new THREE.BufferGeometry().setFromPoints([
