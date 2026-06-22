@@ -22,21 +22,26 @@ initInfo(); initSOP(); initDashboard(); initEditor();
 startRenderLoop();
 
 // ---- board switching by marker id ----
+let unknownTimer = null;
 onMarkerId((id) => {
+  $('midDisplay').textContent = 'marker id: ' + id;
   const board = Lib.getBoard(id);
-  if (!board) {                                   // unknown marker
-    state.boardId = null; state.board = null;
-    buildHotspots([]);                            // no hotspots
-    contentGroup.visible = false;                 // hide the model too
-    $('scanHint').textContent = 'Unknown marker (id ' + id + ') — please scan a registered board';
-    $('scanHint').style.opacity = 1;
-    toast('This ArUco marker is not in the library');
+  if (!board) {                                   // unknown marker — delay the warning
+    clearTimeout(unknownTimer);
+    unknownTimer = setTimeout(() => {
+      state.boardId = null; state.board = null;
+      buildHotspots([]); contentGroup.visible = false;
+      $('scanHint').textContent = 'Unknown marker (id ' + id + ') — please scan a registered board';
+      $('scanHint').style.opacity = 1;
+      toast('This ArUco marker is not in the library');
+    }, 800);
     return;
   }
+  clearTimeout(unknownTimer);                      // a known marker cancels the pending warning
   if (id === state.boardId) { contentGroup.visible = true; return; }
   state.boardId = String(id);
   state.board = board;
-  contentGroup.visible = true;                    // show model + hotspots
+  contentGroup.visible = true;
   buildHotspots(board.components);
   if (board.glb && board.glb !== lastGlb) { setModel(board.glb); lastGlb = board.glb; }
   $('scanHint').textContent = board.name + ' — tap a component or start diagnosis';
