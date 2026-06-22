@@ -16,7 +16,7 @@ export function buildHotspots(components) {
   hotspots.length = 0;
   (components || []).forEach(cmp => {
     const g = new THREE.Group();
-    g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.12, -cmp.y*MODEL_SIZE);
+    g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.03, -cmp.y*MODEL_SIZE);  // sit just above the board
     const disc = new THREE.Mesh(
       new THREE.CircleGeometry(MODEL_SIZE*0.05, 24),
       new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
@@ -24,10 +24,32 @@ export function buildHotspots(components) {
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(MODEL_SIZE*0.06, MODEL_SIZE*0.08, 24),
       new THREE.MeshBasicMaterial({ color:0xffd60a, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
-    g.add(disc); g.add(ring);
+    const label = makeLabel(cmp.name || cmp.id);
+    label.position.set(0, MODEL_SIZE*0.14, 0);   // float the name above the dot
+    g.add(disc); g.add(ring); g.add(label);
     g.userData = { cid: cmp.id, ring, disc, t: Math.random()*6 };
     contentGroup.add(g); hotspots.push(g);
   });
+}
+
+// A camera-facing text label (sprite) drawn on a canvas texture.
+function makeLabel(text) {
+  const font = 26, pad = 10;
+  const c = document.createElement('canvas');
+  const ctx = c.getContext('2d');
+  ctx.font = `bold ${font}px sans-serif`;
+  const w = ctx.measureText(text).width;
+  c.width = Math.ceil(w + pad*2); c.height = font + pad*2;
+  ctx.fillStyle = 'rgba(10,15,22,0.85)';
+  ctx.fillRect(0, 0, c.width, c.height);
+  ctx.font = `bold ${font}px sans-serif`;
+  ctx.fillStyle = '#7fd0ff'; ctx.textBaseline = 'middle';
+  ctx.fillText(text, pad, c.height/2);
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+  const h = MODEL_SIZE * 0.12, aspect = c.width / c.height;
+  sp.scale.set(h*aspect, h, 1);
+  return sp;
 }
 
 export function setRepaired(cid) { repaired.add(cid); }

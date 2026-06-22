@@ -13,7 +13,8 @@ const video = $('video');
 const dCanvas = $('detect');
 const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 
-let detector = null, posit = null, lastSeen = 0, lastId = null;
+let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
+const DETECT_MS = 80;      // run heavy detection ~12x/sec, not every frame
 let idCb = () => {};
 const SMOOTH = 0.35;
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
@@ -51,8 +52,11 @@ export function startTracking() {
 
 function detect() {
   if (!detector || !posit) return;
-  if (video.readyState === video.HAVE_ENOUGH_DATA) {
-    const dw = Math.min(video.videoWidth || 640, 720);
+  const now = performance.now();
+  // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
+  if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
+    lastDetect = now;
+    const dw = Math.min(video.videoWidth || 640, 560);
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
@@ -63,13 +67,13 @@ function detect() {
       const pose = posit.pose(corners);
       if (pose) {
         applyPose(pose.bestRotation, pose.bestTranslation);
-        markerGroup.visible = true; lastSeen = performance.now(); setTrack(true);
+        markerGroup.visible = true; lastSeen = now; setTrack(true);
         if (m.id !== lastId) { lastId = m.id; idCb(m.id); }
       }
     }
   }
   // keep showing for ~1.2s after the last detection so brief misses don't flicker
-  if (markerGroup.visible && performance.now() - lastSeen > 1200) { markerGroup.visible = false; setTrack(false); }
+  if (markerGroup.visible && now - lastSeen > 1200) { markerGroup.visible = false; setTrack(false); }
 }
 
 function applyPose(rot, t) {
