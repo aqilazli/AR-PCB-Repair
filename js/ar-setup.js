@@ -117,6 +117,11 @@ function detectFrame() {
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
     const markers = detector.detect(dCtx.getImageData(0, 0, dw, dh));
+    // DEBUG: show how many markers + which ids the detector sees
+    const hint = $('scanHint');
+    if (hint) hint.textContent = markers.length
+      ? ('marker id ' + markers.map(m=>m.id).join(',') + ' detected')
+      : 'scanning… (0 markers) — fill frame, more light';
     if (markers.length) {
       const corners = markers[0].corners.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
       const pose = posit.pose(corners);
