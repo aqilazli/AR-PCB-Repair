@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>AR PCB Repair Assistant — SDG 12</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============================================================
+     1. INTRO / SDG-12 EDUCATIONAL SCREEN
+============================================================ -->
+<div id="intro" class="screen">
+  <div class="intro-card">
+    <div class="sdg-badge">SDG 12.5 · Responsible Consumption</div>
+    <h1>AR PCB Repair<span>Assistant</span></h1>
+    <p class="lead">Repair circuit boards instead of trashing them — and help cut the
+       world's fastest-growing waste stream.</p>
+    <div class="stats">
+      <div class="stat"><b>62 Mt</b><span>e-waste / year</span></div>
+      <div class="stat"><b>22%</b><span>recycled</span></div>
+      <div class="stat"><b>$62B</b><span>materials lost</span></div>
+    </div>
+    <p class="lead small">Point your phone at the board. The app shows each component,
+       guides you through a fault diagnosis, and counts the e-waste you save.</p>
+    <button class="btn primary" id="startBtn">▶ Start AR Repair</button>
+    <button class="btn ghost" id="helpBtn">How it works</button>
+    <p class="note" id="secureNote"></p>
+  </div>
+</div>
+
+<!-- ============================================================
+     2. AR VIEW  (camera video + three.js overlay canvas)
+============================================================ -->
+<video id="video" playsinline autoplay muted></video>
+<canvas id="three"></canvas>
+<canvas id="detect" hidden></canvas>   <!-- offscreen frame for ArUco -->
+
+<!-- ============================================================
+     3. HUD / UI OVERLAYS
+============================================================ -->
+<div id="hud" class="hidden">
+  <div class="topbar">
+    <div class="logo">PCB<span>AR</span></div>
+    <div id="trackPill" class="pill lost">● Searching…</div>
+    <button class="iconbtn" id="dashBtn" title="Impact dashboard">📊</button>
+    <button class="iconbtn" id="modelBtn" title="3D model">🧊</button>
+  </div>
+
+  <div id="scanHint" class="scanhint">Point at the board · keep the marker in view</div>
+
+  <!-- diagnostic SOP bar (bottom) -->
+  <div id="sop" class="sop hidden">
+    <div class="sop-q" id="sopQ">—</div>
+    <div class="sop-btns" id="sopBtns"></div>
+    <button class="sop-restart" id="sopRestart" title="Restart diagnosis">↻</button>
+  </div>
+
+  <button id="diagBtn" class="diagbtn">🔧 Start Diagnosis</button>
+</div>
+
+<!-- component info panel -->
+<div id="info" class="panel hidden">
+  <button class="x" data-close="info">✕</button>
+  <span id="iFault" class="fault">FAULT</span>
+  <h2 id="iName">Component</h2>
+  <p id="iDesc" class="desc"></p>
+  <div class="data">
+    <div><span>Expected</span><b id="iExp">—</b></div>
+    <div><span>Measured</span><b id="iMeas">—</b></div>
+  </div>
+  <p class="fix"><b>Fix:</b> <span id="iFix"></span></p>
+  <button class="btn small" id="markFixed">✓ Mark repaired</button>
+</div>
+
+<!-- impact dashboard -->
+<div id="dash" class="panel hidden">
+  <button class="x" data-close="dash">✕</button>
+  <h2>📊 Live Impact · SDG 12</h2>
+  <div class="gauges">
+    <div class="g"><b id="gTemp">—</b><span>Board °C</span></div>
+    <div class="g"><b id="gVolt">—</b><span>Supply V</span></div>
+    <div class="g"><b id="gFaults">0</b><span>Faults</span></div>
+    <div class="g"><b id="gFixed">0</b><span>Repairs</span></div>
+  </div>
+  <div class="impact">
+    <div class="row"><span>E-waste avoided</span><b id="iWaste">0.0 kg</b></div>
+    <div class="row"><span>CO₂ saved vs replace</span><b id="iCo2">0.0 kg</b></div>
+    <div class="row"><span>Board life extended</span><b id="iLife">0 yr</b></div>
+  </div>
+  <p class="note">Each repair avoids ~0.4 kg e-waste and ~12 kg CO₂ vs a new board.</p>
+</div>
+
+<!-- 3D model viewer panel -->
+<div id="model" class="panel wide hidden">
+  <button class="x" data-close="model">✕</button>
+  <h2>🧊 3D Board Model</h2>
+  <canvas id="modelCanvas"></canvas>
+  <p class="note">Drag to rotate · pinch / scroll to zoom</p>
+</div>
+
+<!-- help panel -->
+<div id="help" class="panel hidden">
+  <button class="x" data-close="help">✕</button>
+  <h2>How it works</h2>
+  <ol>
+    <li>Tap <b>Start</b> and allow the camera.</li>
+    <li>Print the ArUco marker (see README) and place it on/near the board.</li>
+    <li>Point at the board — wait for <b>Board Locked</b>.</li>
+    <li>Tap a glowing component to inspect its fault.</li>
+    <li>Tap <b>Start Diagnosis</b> and answer the questions.</li>
+    <li>Open <b>📊</b> to see your e-waste impact.</li>
+  </ol>
+</div>
+
+<!-- toast -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     LIBRARIES
+     js-aruco2 (global AR / CV / POS) — marker detection + pose
+============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/aruco.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/svd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/posit1.js"></script>
+
+<!-- App data (global) -->
+<script src="js/data.js"></script>
+
+<!-- three.js as ES module -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
