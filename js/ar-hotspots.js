@@ -14,9 +14,10 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 export function buildHotspots(components) {
   hotspots.forEach(h => contentGroup.remove(h));
   hotspots.length = 0;
-  (components || []).forEach(cmp => {
+  const n = (components || []).length;
+  (components || []).forEach((cmp, i) => {
     const g = new THREE.Group();
-    g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.03, -cmp.y*MODEL_SIZE);  // sit just above the board
+    g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.03, -cmp.y*MODEL_SIZE);  // dot sits just above the board
     const disc = new THREE.Mesh(
       new THREE.CircleGeometry(MODEL_SIZE*0.018, 24),
       new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.95, side:THREE.DoubleSide }));
@@ -24,9 +25,21 @@ export function buildHotspots(components) {
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(MODEL_SIZE*0.024, MODEL_SIZE*0.032, 24),
       new THREE.MeshBasicMaterial({ color:0xffd60a, transparent:true, opacity:0.9, side:THREE.DoubleSide }));
+
+    // ── mind-map callout: label offset away from the board, leader line back to the dot ──
+    const ang = (i / Math.max(1, n)) * Math.PI * 2;          // fan labels around the board
+    const R   = MODEL_SIZE * 0.55;
+    const lx  = Math.cos(ang) * R;
+    const lz  = Math.sin(ang) * R;
+    const ly  = MODEL_SIZE * (0.22 + (i % 3) * 0.10);        // stagger height so they don't collide
     const label = makeLabel(cmp.name || cmp.id);
-    label.position.set(0, MODEL_SIZE*0.14, 0);   // float the name above the dot
-    g.add(disc); g.add(ring); g.add(label);
+    label.position.set(lx, ly, lz);
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, 0), new THREE.Vector3(lx, ly, lz) ]);
+    const line = new THREE.Line(lineGeo,
+      new THREE.LineBasicMaterial({ color:0x7fd0ff, transparent:true, opacity:0.55 }));
+
+    g.add(disc); g.add(ring); g.add(line); g.add(label);
     g.userData = { cid: cmp.id, ring, disc, t: Math.random()*6 };
     contentGroup.add(g); hotspots.push(g);
   });
