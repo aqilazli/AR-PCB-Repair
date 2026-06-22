@@ -45,7 +45,7 @@ export async function startCamera() {
 
 export function startTracking() {
   try {
-    detector = new AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12' });
+    detector = new AR.Detector({ dictionaryName: 'ARUCO', maxHammingDistance: 4 });
     posit    = new POS.Posit(MODEL_SIZE, 0);
   } catch (e) { toast('AR init failed: ' + e.message); }
 }
@@ -56,7 +56,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = Math.min(video.videoWidth || 640, 560);
+    const dw = Math.min(video.videoWidth || 720, 800);
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
