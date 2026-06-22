@@ -8,7 +8,7 @@ import { $ } from './utils.js';
 import { dragRotate, zoomBy } from './ar-model.js';
 import { hitTest } from './ar-hotspots.js';
 
-const ROT_SENS = 0.014;
+const ROT_SENS = 0.006;   // gentler rotation
 const pointers = new Map();
 let sx = 0, sy = 0, moved = 0, lastDist = 0;
 let tapCb = () => {};

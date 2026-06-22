@@ -15,7 +15,7 @@ const baseQuat    = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI
 const userEuler   = new THREE.Euler();   // eased current rotation
 const targetEuler = new THREE.Euler();   // drag target
 const _q = new THREE.Quaternion();
-const EASE = 0.18;
+const EASE = 0.12;   // smoother, more relaxed rotation
 
 /** Swap the board model (e.g. when a different board is detected). */
 export function setModel(url) {

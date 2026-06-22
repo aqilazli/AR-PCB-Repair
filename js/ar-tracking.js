@@ -73,7 +73,7 @@ function detect() {
     }
   }
   // keep showing for ~1.2s after the last detection so brief misses don't flicker
-  if (markerGroup.visible && now - lastSeen > 1200) { markerGroup.visible = false; setTrack(false); }
+  if (markerGroup.visible && now - lastSeen > 2200) { markerGroup.visible = false; setTrack(false); }
 }
 
 function applyPose(rot, t) {
