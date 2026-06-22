@@ -11,7 +11,7 @@
    ============================================================ */
 
 window.DEFAULT_BOARDS = {
-  "0": {
+  "1": {
     name: "Raspberry Pi (Model B)",
     glb: "assets/3d/pcb.glb",
     schematic: "assets/docs/Raspberry-Pi-Schematics.pdf",
