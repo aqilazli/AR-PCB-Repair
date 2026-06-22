@@ -13,18 +13,10 @@
 ============================================================ -->
 <div id="intro" class="screen">
   <div class="intro-card">
-    <div class="sdg-badge">SDG 12.5 · Responsible Consumption</div>
-    <h1>AR PCB Repair<span>Assistant</span></h1>
-    <p class="lead">Repair circuit boards instead of trashing them — and help cut the
-       world's fastest-growing waste stream.</p>
-    <div class="stats">
-      <div class="stat"><b>62 Mt</b><span>e-waste / year</span></div>
-      <div class="stat"><b>22%</b><span>recycled</span></div>
-      <div class="stat"><b>$62B</b><span>materials lost</span></div>
-    </div>
-    <p class="lead small">Point your phone at the board. The app shows each component,
-       guides you through a fault diagnosis, and counts the e-waste you save.</p>
-    <button class="btn primary" id="startBtn">▶ Start AR Repair</button>
+    <div class="sdg-badge">SDG 12.5</div>
+    <h1>PCB <span>AR</span></h1>
+    <p class="lead">AR repair assistant — fix boards, cut e-waste.</p>
+    <button class="btn primary" id="startBtn">▶ Start</button>
     <button class="btn ghost" id="helpBtn">How it works</button>
     <p class="note" id="secureNote"></p>
   </div>
@@ -42,10 +34,12 @@
 ============================================================ -->
 <div id="hud" class="hidden">
   <div class="topbar">
-    <div class="logo">PCB<span>AR</span></div>
+    <div class="logo">PCB <span>AR</span></div>
     <div id="trackPill" class="pill lost">● Searching…</div>
     <button class="iconbtn" id="dashBtn" title="Impact dashboard">📊</button>
-    <button class="iconbtn" id="modelBtn" title="3D model">🧊</button>
+    <button class="iconbtn" id="schematicBtn" title="Board schematic">📐</button>
+    <button class="iconbtn" id="editorBtn" title="Edit board library">📝</button>
+    <button class="iconbtn" id="aboutBtn" title="About & SDG">ℹ️</button>
   </div>
 
   <div id="scanHint" class="scanhint">Point at the board · keep the marker in view</div>
@@ -92,12 +86,87 @@
   <p class="note">Each repair avoids ~0.4 kg e-waste and ~12 kg CO₂ vs a new board.</p>
 </div>
 
-<!-- 3D model viewer panel -->
-<div id="model" class="panel wide hidden">
-  <button class="x" data-close="model">✕</button>
-  <h2>🧊 3D Board Model</h2>
-  <canvas id="modelCanvas"></canvas>
-  <p class="note">Drag to rotate · pinch / scroll to zoom</p>
+<!-- schematic viewer panel -->
+<div id="schematic" class="panel wide hidden">
+  <button class="x" data-close="schematic">✕</button>
+  <h2>📐 Board Schematic</h2>
+  <iframe id="schematicFrame" title="schematic"></iframe>
+  <a id="schematicOpen" href="#" target="_blank" rel="noopener" class="btn small">↗ Open full schematic</a>
+</div>
+
+<!-- board library editor -->
+<div id="editor" class="panel wide hidden">
+  <button class="x" data-close="editor">✕</button>
+  <h2>📝 Board Library</h2>
+
+  <div class="ed-bar">
+    <select id="edBoardSel"></select>
+    <button class="btn small" id="edAddBoard">+ Board</button>
+    <button class="btn small ghost" id="edDelBoard">Delete</button>
+  </div>
+  <p class="note">Each board uses its own ArUco marker id. Generate the marker for a new board with that id.</p>
+
+  <!-- board files + name -->
+  <div class="ed-form">
+    <input id="edBoardName"  placeholder="Board name">
+    <div class="ed-bar">
+      <label class="btn small" style="cursor:pointer">📁 Load GLB
+        <input id="edGlbFile" type="file" accept=".glb,.gltf" hidden></label>
+      <label class="btn small" style="cursor:pointer">📄 Load Schematic
+        <input id="edSchemFile" type="file" accept=".pdf,.png,.jpg,.jpeg,.svg" hidden></label>
+      <button class="btn small" id="edSaveMeta">Save name</button>
+    </div>
+    <div id="edFiles" class="note">No model / schematic loaded yet.</div>
+    <details class="ed-adv">
+      <summary>Advanced: use file paths instead (hosted in assets/)</summary>
+      <input id="edBoardGlb"   placeholder="GLB path (e.g. assets/3d/myboard.glb)">
+      <input id="edBoardSchem" placeholder="Schematic path (e.g. assets/docs/myboard.pdf)">
+      <button class="btn small ghost" id="edSavePaths">Save paths</button>
+    </details>
+  </div>
+
+  <div id="edCompList" class="ed-list"></div>
+
+  <div class="ed-form">
+    <div class="ed-grid">
+      <input id="edcId"    placeholder="id (e.g. u3)">
+      <input id="edcName"  placeholder="name (e.g. U3 — Regulator)">
+      <input id="edcX"     placeholder="x (-0.5..0.5)">
+      <input id="edcY"     placeholder="y (-0.5..0.5)">
+      <input id="edcFault" placeholder="fault (e.g. SHORTED)">
+      <input id="edcExp"   placeholder="expected (e.g. 3.3V)">
+      <input id="edcMeas"  placeholder="measured (e.g. 0V)">
+      <input id="edcDesc"  placeholder="description">
+    </div>
+    <textarea id="edcFix" placeholder="repair method / fix steps"></textarea>
+    <button class="btn small" id="edAddComp">+ Add component</button>
+  </div>
+
+  <div class="ed-bar">
+    <button class="btn small" id="edExportJson">⬇ JSON</button>
+    <button class="btn small" id="edExportCsv">⬇ CSV</button>
+    <label class="btn small ghost" style="cursor:pointer">⬆ Import JSON
+      <input id="edImport" type="file" accept=".json" hidden></label>
+    <button class="btn small ghost" id="edReset">Reset</button>
+  </div>
+</div>
+
+<!-- about / SDG panel -->
+<div id="about" class="panel hidden">
+  <button class="x" data-close="about">✕</button>
+  <div class="sdg-badge">SDG 12.5 · Responsible Consumption</div>
+  <h2>About PCB AR</h2>
+  <p class="desc">An augmented-reality assistant that guides technicians to repair circuit
+     boards instead of discarding them — keeping electronics in service and cutting e-waste.</p>
+  <div class="stats">
+    <div class="stat"><b>62 Mt</b><span>e-waste / year</span></div>
+    <div class="stat"><b>22%</b><span>recycled</span></div>
+    <div class="stat"><b>$62B</b><span>materials lost</span></div>
+  </div>
+  <p class="desc">Every repaired board avoids roughly 0.4 kg of e-waste and 12 kg of CO₂
+     versus manufacturing a replacement — directly supporting <b>SDG 12.5</b>
+     (substantially reduce waste through reuse) and <b>SDG 9</b> (resilient industry).</p>
+  <p class="note">Tracking: ArUco (ARUCO_MIP_36h12) · Render: three.js · Source: Global E-waste Monitor 2024.</p>
 </div>
 
 <!-- help panel -->
@@ -121,6 +190,9 @@
      LIBRARIES
      js-aruco2 (global AR / CV / POS) — marker detection + pose
 ============================================================ -->
+<!-- ORDER MATTERS: cv.js must load before aruco.min.js (which needs CV),
+     and svd.js before posit1.js (which needs SVD). -->
+<script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/cv.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/aruco.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/svd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/js-aruco2@2.0.0/src/posit1.js"></script>

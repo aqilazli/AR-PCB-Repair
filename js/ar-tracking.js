@@ -1,0 +1,97 @@
+/* ============================================================
+   ar-tracking.js — camera + ArUco detection + pose smoothing
+     - opens the rear camera (with fallbacks)
+     - detects the marker each frame, eases the group onto its pose
+     - reports the detected marker id to a callback (board switching)
+   Globals: AR, POS (js-aruco2, loaded in index.html).
+   ============================================================ */
+import * as THREE from 'three';
+import { markerGroup, MODEL_SIZE, addFrameTask } from './ar-core.js';
+import { $, toast } from './utils.js';
+
+const video = $('video');
+const dCanvas = $('detect');
+const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
+
+let detector = null, posit = null, lastSeen = 0, lastId = null;
+let idCb = () => {};
+const SMOOTH = 0.35;
+const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
+let _hasTarget = false;
+
+export function onMarkerId(cb) { idCb = cb; }
+
+export async function startCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast('No camera API — open over HTTPS'); return false;
+  }
+  const tries = [
+    { video: { facingMode: { exact: 'environment' } }, audio: false },
+    { video: { facingMode: 'environment' }, audio: false },
+    { video: true, audio: false }
+  ];
+  let lastErr;
+  for (const c of tries) {
+    try {
+      video.srcObject = await navigator.mediaDevices.getUserMedia(c);
+      await video.play().catch(()=>{});
+      return true;
+    } catch (e) { lastErr = e; }
+  }
+  toast('Camera error: ' + (lastErr && lastErr.name ? lastErr.name : 'unknown'));
+  return false;
+}
+
+export function startTracking() {
+  try {
+    detector = new AR.Detector({ dictionaryName: 'ARUCO_MIP_36h12' });
+    posit    = new POS.Posit(MODEL_SIZE, 0);
+  } catch (e) { toast('AR init failed: ' + e.message); }
+}
+
+function detect() {
+  if (!detector || !posit) return;
+  if (video.readyState === video.HAVE_ENOUGH_DATA) {
+    const dw = Math.min(video.videoWidth || 640, 720);
+    const dh = Math.round(dw * video.videoHeight / video.videoWidth);
+    if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
+    dCtx.drawImage(video, 0, 0, dw, dh);
+    const markers = detector.detect(dCtx.getImageData(0, 0, dw, dh));
+    if (markers.length) {
+      const m = markers[0];
+      const corners = m.corners.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
+      const pose = posit.pose(corners);
+      if (pose) {
+        applyPose(pose.bestRotation, pose.bestTranslation);
+        markerGroup.visible = true; lastSeen = performance.now(); setTrack(true);
+        if (m.id !== lastId) { lastId = m.id; idCb(m.id); }
+      }
+    }
+  }
+  if (markerGroup.visible && performance.now() - lastSeen > 400) { markerGroup.visible = false; setTrack(false); }
+}
+
+function applyPose(rot, t) {
+  _tp.set(t[0], t[1], -t[2]);
+  _eu.set(-Math.asin(-rot[1][2]), -Math.atan2(rot[0][2], rot[2][2]), Math.atan2(rot[1][0], rot[1][1]));
+  _tq.setFromEuler(_eu);
+  if (!_hasTarget) { markerGroup.position.copy(_tp); markerGroup.quaternion.copy(_tq); }
+  _hasTarget = true;
+}
+
+function smooth() {
+  if (_hasTarget && markerGroup.visible) {
+    markerGroup.position.lerp(_tp, SMOOTH);
+    markerGroup.quaternion.slerp(_tq, SMOOTH);
+  }
+}
+
+function setTrack(on) {
+  const pill = $('trackPill');
+  pill.textContent = on ? '● Board locked' : '● Searching…';
+  pill.className = 'pill ' + (on ? 'found' : 'lost');
+  $('scanHint').style.opacity = on ? 0 : 1;
+}
+
+addFrameTask(detect);
+addFrameTask(smooth);
