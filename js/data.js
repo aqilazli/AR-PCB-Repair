@@ -31,25 +31,9 @@ window.DEFAULT_BOARDS = {
       { id:'wifi', name:'BCM43438 — WiFi / BT', x:0.30, y:-0.20,
         fault:'NO WIFI', desc:'On-board wireless module for WiFi and Bluetooth.',
         exp:'scans networks', meas:'not detected', fix:'Reflow the module; check the 3.3V supply and antenna.' }
-    ],
-    // Rich branching diagnostic (mirrors the troubleshooting flowchart).
-    diag: {
-      start:   { q:'Is the RED power LED on?',           options:[ {label:'Yes',go:'chk_act'}, {label:'No',go:'meas_5v'} ] },
-      meas_5v: { q:'Measure PP1/PP2 — is 5V present?',   options:[ {label:'Yes',go:'chk_33'}, {label:'No',go:'tvs'} ] },
-      tvs:     { fix:'D5 TVS diode likely shorted → remove/replace it, or replace the micro-USB connector.', focus:'d5' },
-      chk_33:  { q:'Is 3.3V present at GPIO pin 1?',     options:[ {label:'Yes',go:'chk_act'}, {label:'No',go:'pmic'} ] },
-      pmic:    { fix:'Power IC fault → reflow or replace the MXL7704 PMIC.', focus:'pmic' },
-      chk_act: { q:'What is the GREEN ACT LED doing?',
-                 options:[ {label:'No activity',go:'sd'}, {label:'Steady on',go:'soc'}, {label:'Blinking normally',go:'hot'} ] },
-      sd:      { fix:'No boot activity → re-image the SD card and re-seat it.', focus:null },
-      soc:     { fix:'Steady LED suggests an SoC/rail short → check rails before replacing the board.', focus:'cpu' },
-      hot:     { q:'Is any component hot to the touch?',
-                 options:[ {label:'WiFi/BT hot',go:'fix_wifi'}, {label:'USB/Eth hot',go:'fix_lan'}, {label:'CPU hot',go:'fix_cpu'}, {label:'None',go:'ok'} ] },
-      fix_wifi:{ fix:'Replace the BCM43438 WiFi/BT module; check its 3.3V supply.', focus:'wifi' },
-      fix_lan: { fix:'Check/replace the LAN9514 USB/Ethernet controller.', focus:'lan' },
-      fix_cpu: { fix:'Check rails for shorts near the BCM2837; reflow or replace if confirmed.', focus:'cpu' },
-      ok:      { fix:'No fault found — board appears healthy. Log it as serviceable.', focus:null }
-    }
+    ]
+    // No custom `diag`: the app auto-builds the diagnostic from the components
+    // above, so every question maps to a labelled point on the board.
   }
 };
 
