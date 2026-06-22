@@ -43,7 +43,7 @@ export function loadModel(url = 'assets/3d/pcb.glb') {
 }
 
 // input → model transforms (called by ar-controls.js)
-export function dragRotate(dx, dy, sens) { targetEuler.y -= dx*sens; targetEuler.x += dy*sens; }
+export function dragRotate(dx, dy, sens) { targetEuler.y += dx*sens; targetEuler.x += dy*sens; }
 export function zoomBy(mult) { userScale = Math.max(0.4, Math.min(3, userScale*mult)); }
 
 // Tap-to-place calibration: project a screen tap onto the board model and
