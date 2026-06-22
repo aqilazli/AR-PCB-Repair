@@ -70,3 +70,8 @@ const DIAG = {
 
 /* Impact factors per repaired board (conservative averages). */
 const IMPACT = { ewastePerRepair: 0.4, co2PerRepair: 12.0, lifePerRepair: 2 };
+
+/* Expose to the module (module scope reads these globals). */
+window.COMPONENTS = COMPONENTS;
+window.DIAG = DIAG;
+window.IMPACT = IMPACT;
