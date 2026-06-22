@@ -67,7 +67,8 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 /* ---- Panels ---- */
 .panel { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:50;
   width:min(92vw,400px); background:#0d1b29; border:1px solid #213347; border-radius:18px;
-  padding:20px; box-shadow:0 20px 60px #000a; }
+  padding:20px; box-shadow:0 20px 60px #000a;
+  max-height:88vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .panel.wide { width:min(94vw,520px); }
 .panel h2 { font-size:18px; margin-bottom:12px; }
 .panel .x { position:absolute; top:12px; right:14px; background:none; border:none; color:#9fb3c8;
