@@ -127,6 +127,7 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 .ed-row b { color:#4ea8ff; }
 .ed-rowbody { flex:1; cursor:pointer; padding:4px 2px; }       /* click name to edit */
 .ed-rowbody:active { opacity:.7; }
+.ed-xy { color:#7fd0ff; font-size:11px; font-family:monospace; margin-left:6px; }
 .ed-fault { color:#ff8a80; font-size:11px; margin-left:6px; }
 .ed-place { background:#16324f; border:1px solid #2e6da4; color:#fff; font-size:15px; cursor:pointer;
   border-radius:8px; padding:4px 8px; }                         /* place button on the LEFT */

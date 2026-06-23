@@ -27,8 +27,10 @@ export async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('No camera API — open over HTTPS'); return false;
   }
+  const hi = { width: { ideal: 1920 }, height: { ideal: 1080 } };
   const tries = [
-    { video: { facingMode: { exact: 'environment' } }, audio: false },
+    { video: { facingMode: { exact: 'environment' }, ...hi }, audio: false },
+    { video: { facingMode: 'environment', ...hi }, audio: false },
     { video: { facingMode: 'environment' }, audio: false },
     { video: true, audio: false }
   ];
@@ -57,7 +59,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = Math.min(video.videoWidth || 720, 800);
+    const dw = Math.min(video.videoWidth || 1280, 1280);   // more pixels = small markers decode
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
