@@ -27,7 +27,7 @@ export async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('No camera API — open over HTTPS'); return false;
   }
-  const hi = { width: { ideal: 2560 }, height: { ideal: 1440 } };   // ask for max; phone grants what it can
+  const hi = { width: { ideal: 1280 }, height: { ideal: 720 } };   // basic 720p — fast, standard, no downscale conflict
   const af = [{ focusMode: 'continuous' }];                          // keep the marker in focus
   const tries = [
     { video: { facingMode: { exact: 'environment' }, ...hi, advanced: af }, audio: false },
@@ -70,7 +70,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = Math.min(video.videoWidth || 1280, 1280);   // 1280 decode = fast, no lag
+    const dw = video.videoWidth || 1280;   // decode at NATIVE video size — no downscale, no conflict
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
