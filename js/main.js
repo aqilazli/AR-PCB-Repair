@@ -17,7 +17,7 @@ import { initEditor } from './ui-editor.js';
 // ---- build the AR scene (no camera yet) ----
 loadModel();
 initControls();
-onTap(openSOPFor);   // tap a point → diagnose THAT component only (its question)
+onTap(openInfo);   // tap a point → that component's fault + numbered steps (scrollable)
 initInfo(); initSOP(); initDashboard(); initEditor();
 startRenderLoop();
 

@@ -18,6 +18,14 @@ export function openInfo(cid) {
   $('iExp').textContent   = c.exp  || '—';
   $('iMeas').textContent  = c.meas || '—';
   $('iFix').textContent   = c.fix  || '';
+  // numbered, scrollable steps to check this component
+  const steps = (c.steps && c.steps.length) ? c.steps : [
+    `Inspect ${c.name} for visible damage.`,
+    `Expected: ${c.exp || '—'} — measure the actual value.`,
+    `If it reads ${c.meas || 'wrong'}, ${c.fix || 'reflow or replace it.'}`
+  ];
+  const ol = $('iSteps'); ol.innerHTML = '';
+  steps.forEach(s => { const li = document.createElement('li'); li.textContent = s; ol.appendChild(li); });
   $('markFixed').style.display = state.repaired.has(cid) ? 'none' : '';
   $('info').classList.remove('hidden');
   // show the component name as a centered label under the marker id
