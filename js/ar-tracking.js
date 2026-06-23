@@ -59,7 +59,7 @@ export async function startCamera() {
 
 export function startTracking() {
   try {
-    detector = new AR.Detector({ dictionaryName: 'ARUCO' });
+    detector = new AR.Detector({ dictionaryName: 'ARUCO_4X4_1000' });   // 6x6 grid, biggest cells, easiest detect
     posit    = new POS.Posit(MODEL_SIZE, 0);
   } catch (e) { toast('AR init failed: ' + e.message); }
 }
@@ -70,7 +70,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = video.videoWidth || 1280;   // FULL native res — small markers need every pixel
+    const dw = Math.min(video.videoWidth || 1280, 1280);   // 1280 decode = fast, no lag
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
