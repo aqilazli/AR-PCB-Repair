@@ -4,17 +4,24 @@
      - otherwise auto-build a simple component-by-component checklist
    A node is either { q, options:[{label,go}] } or { fix, focus }.
    ============================================================ */
-// Single-component diagnosis: tap a point → ask only THAT component's question,
-// Yes → its fix, No → it looks OK. No walking through the other components.
+// Single-component diagnosis as an interactive question wizard:
+//   symptom question → walk each check step (confirm to advance) → reveal the fix.
 export function buildDiagForComponent(c) {
   if (!c) return { start: { fix: 'Component not found.', focus: null } };
-  return {
-    start: { q: `Check ${c.name} — ${c.fault}?`,
-             options: [ { label: 'Yes (faulty)', go: 'fix' },
-                        { label: 'No / looks OK', go: 'ok' } ] },
-    fix: { fix: c.fix || 'Inspect and reseat/replace this component.', focus: c.id },
-    ok:  { fix: `${c.name} appears serviceable.`, focus: c.id }
-  };
+  const steps = (c.steps && c.steps.length) ? c.steps
+              : [ c.fix || 'Inspect, reseat or replace this component.' ];
+  const d = {};
+  d.start = { q: `Symptom: ${c.fault || 'fault'}.  Is ${c.name} showing this problem?`,
+              options: [ { label: 'Yes — diagnose', go: 's0' },
+                         { label: 'No / looks OK', go: 'ok' } ] };
+  steps.forEach((s, i) => {
+    const next = i < steps.length - 1 ? ('s' + (i + 1)) : 'fix';
+    d['s' + i] = { q: `Step ${i + 1} of ${steps.length}:\n${s}`,
+                   options: [ { label: 'Done — next ▶', go: next } ] };
+  });
+  d.fix = { fix: c.fix || 'Reseat or replace this component.', focus: c.id };
+  d.ok  = { fix: `${c.name} appears serviceable — no action needed.`, focus: c.id };
+  return d;
 }
 
 export function buildDiag(board) {

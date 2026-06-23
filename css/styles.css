@@ -90,7 +90,7 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 /* ---- SOP bar ---- */
 .sop { position:fixed; bottom:0; left:0; right:0; z-index:15; background:#0d1b29f2;
   border-top:2px solid #4ea8ff; padding:16px 14px 22px; }
-.sop-q { font-size:16px; font-weight:600; margin-bottom:12px; }
+.sop-q { font-size:16px; font-weight:600; margin-bottom:12px; white-space:pre-line; line-height:1.5; }
 .sop-btns { display:flex; flex-wrap:wrap; gap:8px; }
 .sop-opt { background:#16324f; color:#fff; border:1px solid #2e6da4; border-radius:10px;
   padding:10px 16px; font-size:15px; cursor:pointer; }

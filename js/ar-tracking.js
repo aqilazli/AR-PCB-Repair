@@ -16,10 +16,10 @@ const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let lockedId = null, challenger = null, challengeCount = 0;   // id lock (ignore misread flips)
 let _sc = null;                     // smoothed marker corners (input-side stabilization)
-const CORNER_SMOOTH = 0.22;         // 0=frozen, 1=raw; lower = steadier corners (less dancing)
+const CORNER_SMOOTH = 0.12;         // 0=frozen, 1=raw; very low = rock-steady corners
 const DETECT_MS = 50;      // ~20x/sec — balanced: detects well, stays smooth
 let idCb = () => {};
-const SMOOTH = 0.28;   // middle: sticks to the marker but doesn't twitch/dance
+const SMOOTH = 0.16;   // heavy damping = holds still, won't twitch on its own
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
 let _hasTarget = false;
 
@@ -166,8 +166,8 @@ function applyPose(rot, t) {
 
 // Deadzone: hold still unless the marker really moved. Kills the per-frame
 // tremor from a small/low-res marker (corners wobble a few px each frame).
-const DEAD_POS = MODEL_SIZE * 0.03;          // small deadzone — absorbs micro-tremor without lag
-const DEAD_ROT = 0.025;                       // ~1.4° — kills the rotational dance
+const DEAD_POS = MODEL_SIZE * 0.09;          // big deadzone — ignore noise, only move when marker really moves
+const DEAD_ROT = 0.06;                        // ~3.4° — model stays put unless the marker genuinely turns
 function smooth() {
   if (_hasTarget && markerGroup.visible) {
     if (markerGroup.position.distanceTo(_tp) > DEAD_POS)
