@@ -64,6 +64,11 @@ function detect() {
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
     const markers = detector.detect(dCtx.getImageData(0, 0, dw, dh));
+    // LIVE DEBUG: what the detector actually sees, every scan
+    const md = $('midDisplay');
+    if (md) md.textContent = markers.length
+      ? ('detected id: ' + markers.map(m => m.id).join(',') + '  (cam ' + (video.videoWidth||'?') + 'px)')
+      : ('no marker  (cam ' + (video.videoWidth||'?') + 'px)');
     if (markers.length) {
       const m = markers[0];
       const corners = m.corners.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
