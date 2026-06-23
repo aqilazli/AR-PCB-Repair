@@ -16,21 +16,21 @@ window.DEFAULT_BOARDS = {
     glb: "assets/3d/pcb.glb",
     schematic: "assets/docs/Raspberry-Pi-Schematics.pdf",
     components: [
-      { id:'d5',   name:'D5 — TVS Diode (SMBJ5.0A)', x:-0.35, y:0.18,
-        fault:'SHORTED', desc:'Over-voltage protection diode. A surge can short it, killing the 5V rail.',
-        exp:'open / blocking', meas:'0.3 Ω short', fix:'Remove or replace D5; check the micro-USB input for damage.' },
-      { id:'pmic', name:'MXL7704 — Power Mgmt IC', x:-0.10, y:0.05,
-        fault:'NO 3.3V', desc:'Generates the 1.2V / 1.8V / 3.3V rails for the whole board.',
-        exp:'3.30 V out', meas:'0.00 V', fix:'Reflow the PMIC pins; verify 5V at PP1/PP2; replace if dead.' },
-      { id:'cpu',  name:'BCM2837 — Quad-Core CPU', x:0.12, y:-0.04,
-        fault:'OVERHEAT', desc:'Main processor. Continuous green-LED + heat can indicate a short on a rail.',
-        exp:'< 70 °C', meas:'93 °C', fix:'Check rails for shorts before powering; inspect for solder bridges.' },
-      { id:'lan',  name:'LAN9514 — USB/Ethernet', x:0.34, y:0.16,
-        fault:'NO ETHERNET', desc:'Bridges the CPU to the USB hub and Ethernet port.',
-        exp:'link up', meas:'no link', fix:'Reflow U2; inspect the Ethernet magnetics and USB pads.' },
-      { id:'wifi', name:'BCM43438 — WiFi / BT', x:0.30, y:-0.20,
-        fault:'NO WIFI', desc:'On-board wireless module for WiFi and Bluetooth.',
-        exp:'scans networks', meas:'not detected', fix:'Reflow the module; check the 3.3V supply and antenna.' }
+      { id:'power', name:'Micro-USB Power Input', x:-0.40, y:0.15,
+        fault:'NO POWER', desc:'5V power input. A bad cable or damaged port stops the board powering on.',
+        exp:'5.1 V', meas:'0 V', fix:'Try a known-good 5V/2.5A supply; reflow or replace the micro-USB port.' },
+      { id:'usb', name:'USB Ports (4x)', x:0.40, y:-0.05,
+        fault:'NO USB DEVICE', desc:'USB 2.0 ports for keyboard, mouse and storage.',
+        exp:'device detected', meas:'nothing', fix:'Check the USB power budget; reflow the port pins; test another device.' },
+      { id:'eth', name:'Ethernet Port', x:0.40, y:0.20,
+        fault:'NO NETWORK', desc:'10/100 wired network port.',
+        exp:'link LED on', meas:'no link', fix:'Check the cable; inspect the port pins and magnetics; reflow if cold-jointed.' },
+      { id:'hdmi', name:'HDMI Output', x:-0.05, y:0.30,
+        fault:'NO DISPLAY', desc:'Video output to a monitor or TV.',
+        exp:'image on screen', meas:'no signal', fix:'Try another cable/monitor; reflow the HDMI connector pins.' },
+      { id:'gpio', name:'GPIO Header (40-pin)', x:0.05, y:-0.32,
+        fault:'PIN NOT WORKING', desc:'40-pin general-purpose header for add-on boards.',
+        exp:'3.3 V on pin 1', meas:'0 V', fix:'Check for bent/shorted pins; verify the 3.3V rail; reflow the header.' }
     ]
     // No custom `diag`: the app auto-builds the diagnostic from the components
     // above, so every question maps to a labelled point on the board.
