@@ -4,6 +4,19 @@
      - otherwise auto-build a simple component-by-component checklist
    A node is either { q, options:[{label,go}] } or { fix, focus }.
    ============================================================ */
+// Single-component diagnosis: tap a point → ask only THAT component's question,
+// Yes → its fix, No → it looks OK. No walking through the other components.
+export function buildDiagForComponent(c) {
+  if (!c) return { start: { fix: 'Component not found.', focus: null } };
+  return {
+    start: { q: `Check ${c.name} — ${c.fault}?`,
+             options: [ { label: 'Yes (faulty)', go: 'fix' },
+                        { label: 'No / looks OK', go: 'ok' } ] },
+    fix: { fix: c.fix || 'Inspect and reseat/replace this component.', focus: c.id },
+    ok:  { fix: `${c.name} appears serviceable.`, focus: c.id }
+  };
+}
+
 export function buildDiag(board) {
   if (board && board.diag) return board.diag;
 

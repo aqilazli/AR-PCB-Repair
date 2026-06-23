@@ -4,7 +4,7 @@
    ============================================================ */
 import { $ } from './utils.js';
 import { state } from './state.js';
-import { buildDiag } from './diagnostic.js';
+import { buildDiag, buildDiagForComponent } from './diagnostic.js';
 import { highlight } from './ar-hotspots.js';
 import { openInfo } from './ui-info.js';
 
@@ -13,6 +13,15 @@ let diag = {}, node = 'start';
 export function initSOP() {
   $('diagBtn').addEventListener('click', () => { diag = buildDiag(state.board || {}); node = 'start'; render(); $('sop').classList.remove('hidden'); });
   $('sopRestart').addEventListener('click', () => { node = 'start'; render(); });
+}
+
+// Tap a hotspot → diagnose ONLY that component (its question, then its fix).
+export function openSOPFor(cid) {
+  const c = (state.board?.components || []).find(x => x.id === cid);
+  if (!c) return;
+  diag = buildDiagForComponent(c); node = 'start'; render();
+  highlight(cid);
+  $('sop').classList.remove('hidden');
 }
 
 function render() {
