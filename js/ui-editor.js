@@ -80,17 +80,42 @@ function render() {
   const tag = v => v ? (v.startsWith('data:') ? 'loaded ✓' : 'path ✓') : 'none';
   $('edFiles').textContent = 'model: ' + tag(board?.glb) + '   ·   schematic: ' + tag(board?.schematic);
 
-  // component list
+  // component list — [📍 place]  [name (click to edit)]  [🗑 delete]
   const list = $('edCompList'); list.innerHTML = '';
   (board?.components || []).forEach(c => {
     const row = document.createElement('div'); row.className = 'ed-row';
-    row.innerHTML = `<b>${c.id}</b> — ${c.name} <span class="ed-fault">${c.fault||''}</span>`;
-    const place = document.createElement('button'); place.className = 'ed-del'; place.textContent = '📍'; place.title = 'Tap to place on board';
-    place.onclick = () => startPlace(c.id);
-    const del = document.createElement('button'); del.className = 'ed-del'; del.textContent = '🗑';
-    del.onclick = () => { Lib.removeComponent(editId, c.id); render(); refreshAR(); };
-    row.appendChild(place); row.appendChild(del); list.appendChild(row);
+
+    const place = document.createElement('button'); place.className = 'ed-place'; place.textContent = '📍'; place.title = 'Tap to place on board';
+    place.onclick = (e) => { e.stopPropagation(); startPlace(c.id); };
+
+    const info = document.createElement('div'); info.className = 'ed-rowbody';
+    info.innerHTML = `<b>${c.id}</b> — ${c.name} <span class="ed-fault">${c.fault||''}</span>`;
+    info.onclick = () => selectForEdit(c);   // click the name to edit it
+
+    const del = document.createElement('button'); del.className = 'ed-del'; del.textContent = '🗑'; del.title = 'Delete';
+    del.onclick = (e) => { e.stopPropagation(); if (confirm('Delete component "' + c.id + '"?')) { Lib.removeComponent(editId, c.id); if (editingCid === c.id) clearForm(); render(); refreshAR(); } };
+
+    row.appendChild(place); row.appendChild(info); row.appendChild(del);
+    list.appendChild(row);
   });
+}
+
+// Load a component into the form for editing.
+let editingCid = null;
+function selectForEdit(c) {
+  editingCid = c.id;
+  $('edcId').value = c.id; $('edcName').value = c.name || '';
+  $('edcX').value = c.x ?? ''; $('edcY').value = c.y ?? '';
+  $('edcFault').value = c.fault || ''; $('edcDesc').value = c.desc || '';
+  $('edcExp').value = c.exp || ''; $('edcMeas').value = c.meas || ''; $('edcFix').value = c.fix || '';
+  $('edAddComp').textContent = '💾 Update component';
+  $('edcId').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  toast('Editing ' + c.id);
+}
+function clearForm() {
+  editingCid = null;
+  ['edcId','edcName','edcX','edcY','edcFault','edcDesc','edcExp','edcMeas','edcFix'].forEach(i => $(i).value = '');
+  $('edAddComp').textContent = '+ Add component';
 }
 
 function addComponent() {
@@ -107,10 +132,14 @@ function addComponent() {
     fix:   ($('edcFix').value || '').trim()
   };
   if (!comp.id || !comp.name) { toast('Component needs at least an id and a name'); return; }
-  Lib.addComponent(editId, comp);
-  ['edcId','edcName','edcX','edcY','edcFault','edcDesc','edcExp','edcMeas','edcFix'].forEach(i => $(i).value = '');
-  render(); refreshAR();
-  toast('Component added');
+  if (editingCid) {                          // update existing
+    Lib.updateComponent(editId, editingCid, comp);
+    toast('Component updated');
+  } else {
+    Lib.addComponent(editId, comp);
+    toast('Component added');
+  }
+  clearForm(); render(); refreshAR();
 }
 
 // If we edited the board that is currently tracked, rebuild its hotspots live.

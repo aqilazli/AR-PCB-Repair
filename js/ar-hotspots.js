@@ -16,7 +16,7 @@ export function buildHotspots(components) {
   hotspots.length = 0;
   (components || []).forEach((cmp) => {
     const g = new THREE.Group();
-    g.position.set(cmp.x*MODEL_SIZE, MODEL_SIZE*0.03, -cmp.y*MODEL_SIZE);  // dot sits just above the board
+    g.position.set(cmp.x*MODEL_SIZE, 0, -cmp.y*MODEL_SIZE);  // dot ON the board (no float = no parallax offset)
     const disc = new THREE.Mesh(
       new THREE.CircleGeometry(MODEL_SIZE*0.018, 24),
       new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.95, side:THREE.DoubleSide }));
