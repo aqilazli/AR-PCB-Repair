@@ -20,6 +20,9 @@ export function openInfo(cid) {
   $('iFix').textContent   = c.fix  || '';
   $('markFixed').style.display = state.repaired.has(cid) ? 'none' : '';
   $('info').classList.remove('hidden');
+  // show the component name as a centered label under the marker id
+  const lab = $('compLabel');
+  if (lab) { lab.textContent = c.name || c.id; lab.classList.remove('hidden'); }
   if (!state.faults.has(cid)) { state.faults.add(cid); updateDash(); }
 }
 
