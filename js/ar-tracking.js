@@ -15,6 +15,8 @@ const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
+let _sc = null, _scId = null;       // smoothed marker corners (input-side stabilization)
+const CORNER_SMOOTH = 0.35;         // 0=frozen, 1=raw; low = very steady corners
 const DETECT_MS = 45;      // detect ~22x/sec for a better chance to catch the marker
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
@@ -82,7 +84,19 @@ function detect() {
       : ('no marker  (cam ' + (video.videoWidth||'?') + 'px)');
     if (markers.length) {
       const m = markers[0];
-      const corners = m.corners.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
+      // SMOOTH THE CORNERS (input) before pose — posit is nonlinear, so a few
+      // pixels of corner wobble blows up into pose jumps. Averaging the corners
+      // over frames is the real stability fix.
+      const raw = m.corners;
+      if (!_sc || m.id !== _scId) {            // new marker / first sight: snap
+        _sc = raw.map(c => ({ x: c.x, y: c.y })); _scId = m.id;
+      } else {
+        for (let i = 0; i < 4; i++) {
+          _sc[i].x += (raw[i].x - _sc[i].x) * CORNER_SMOOTH;
+          _sc[i].y += (raw[i].y - _sc[i].y) * CORNER_SMOOTH;
+        }
+      }
+      const corners = _sc.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
       const pose = posit.pose(corners);
       if (pose) {
         applyPose(pose.bestRotation, pose.bestTranslation);
@@ -94,7 +108,7 @@ function detect() {
     }
   }
   // keep showing for ~1.2s after the last detection so brief misses don't flicker
-  if (markerGroup.visible && now - lastSeen > 3500) { markerGroup.visible = false; setTrack(false); }
+  if (markerGroup.visible && now - lastSeen > 3500) { markerGroup.visible = false; setTrack(false); _sc = null; }
 }
 
 function applyPose(rot, t) {
@@ -105,10 +119,16 @@ function applyPose(rot, t) {
   _hasTarget = true;
 }
 
+// Deadzone: hold still unless the marker really moved. Kills the per-frame
+// tremor from a small/low-res marker (corners wobble a few px each frame).
+const DEAD_POS = MODEL_SIZE * 0.05;          // ignore position jitter under ~5% of marker size
+const DEAD_ROT = 0.04;                        // ignore rotation jitter under ~2.3°
 function smooth() {
   if (_hasTarget && markerGroup.visible) {
-    markerGroup.position.lerp(_tp, SMOOTH);
-    markerGroup.quaternion.slerp(_tq, SMOOTH);
+    if (markerGroup.position.distanceTo(_tp) > DEAD_POS)
+      markerGroup.position.lerp(_tp, SMOOTH);
+    if (markerGroup.quaternion.angleTo(_tq) > DEAD_ROT)
+      markerGroup.quaternion.slerp(_tq, SMOOTH);
   }
 }
 
