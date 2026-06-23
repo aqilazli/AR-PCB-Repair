@@ -14,7 +14,7 @@ let boardModel = null, baseScaleNum = 1, userScale = 1;
 const userEuler   = new THREE.Euler();   // eased current rotation
 const targetEuler = new THREE.Euler();   // drag target
 const _q = new THREE.Quaternion();
-const EASE = 0.12;   // smoother, more relaxed rotation
+const EASE = 0.4;   // responsive rotation — follows your finger closely
 
 /** Swap the board model (e.g. when a different board is detected). */
 export function setModel(url) {
