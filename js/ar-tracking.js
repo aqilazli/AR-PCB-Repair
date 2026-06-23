@@ -17,7 +17,7 @@ let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
 let _sc = null, _scId = null;       // smoothed marker corners (input-side stabilization)
 const CORNER_SMOOTH = 0.35;         // 0=frozen, 1=raw; low = very steady corners
-const DETECT_MS = 45;      // detect ~22x/sec for a better chance to catch the marker
+const DETECT_MS = 55;      // ~18x/sec — bit slower decode at 1080p so the UI stays smooth
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
@@ -29,7 +29,7 @@ export async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('No camera API — open over HTTPS'); return false;
   }
-  const hi = { width: { ideal: 1280 }, height: { ideal: 720 } };   // basic 720p — fast, standard, no downscale conflict
+  const hi = { width: { ideal: 1920 }, height: { ideal: 1080 } };   // 1080p — more pixels = longer detect range, still lighter than 1440p
   const af = [{ focusMode: 'continuous' }];                          // keep the marker in focus
   const tries = [
     { video: { facingMode: { exact: 'environment' }, ...hi, advanced: af }, audio: false },

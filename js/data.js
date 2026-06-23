@@ -11,7 +11,7 @@
    ============================================================ */
 
 window.DEFAULT_BOARDS = {
-  "0": {
+  "100": {
     name: "Raspberry Pi (Model B)",
     glb: "assets/3d/pcb.glb",
     schematic: "assets/docs/Raspberry-Pi-Schematics.pdf",
@@ -47,6 +47,10 @@ window.DEFAULT_BOARDS = {
     // above, so every question maps to a labelled point on the board.
   }
 };
+
+// Two markers for the SAME Raspberry Pi board, so you can compare which ArUco id
+// detects better. id 23 points at the exact same board as id 100 (shared object).
+window.DEFAULT_BOARDS["23"] = window.DEFAULT_BOARDS["100"];
 
 /* Impact factors per repaired board (conservative averages). */
 window.IMPACT = { ewastePerRepair: 0.4, co2PerRepair: 12.0, lifePerRepair: 2 };
