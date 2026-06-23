@@ -60,9 +60,9 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
   font-size:15px; font-weight:600; color:#7fd0ff; background:#000c; padding:6px 16px;
   border-radius:16px; border:1px solid #2a3a4d; max-width:80vw; text-align:center; }
 /* scan viewfinder */
-.scanframe { position:fixed; top:50%; left:50%; width:48vw; max-width:250px; aspect-ratio:1;
+.scanframe { position:fixed; top:50%; left:50%; width:30vw; max-width:150px; aspect-ratio:1;
   transform:translate(-50%,-55%); z-index:11; pointer-events:none; }
-.scanframe .c { position:absolute; width:28px; height:28px; border:3px solid #ffffff; }
+.scanframe .c { position:absolute; width:20px; height:20px; border:3px solid #ffffff; }
 .scanframe .tl { top:0; left:0; border-right:none; border-bottom:none; }
 .scanframe .tr { top:0; right:0; border-left:none; border-bottom:none; }
 .scanframe .bl { bottom:0; left:0; border-right:none; border-top:none; }
