@@ -10,7 +10,7 @@ import { buildHotspots } from './ar-hotspots.js';
 import { startCamera, startTracking, onMarkerId } from './ar-tracking.js';
 import { initControls, onTap } from './ar-controls.js';
 import { openInfo, initInfo } from './ui-info.js';
-import { initSOP, openSOPFor } from './ui-sop.js';
+import { initSOP } from './ui-sop.js';
 import { initDashboard } from './ui-dashboard.js';
 import { initEditor } from './ui-editor.js';
 

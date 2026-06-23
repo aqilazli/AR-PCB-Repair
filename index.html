@@ -58,6 +58,14 @@
     <button class="sop-restart" id="sopRestart" title="Restart diagnosis">↻</button>
   </div>
 
+  <button id="diagBtn" class="diagbtn">🔧 Diagnose</button>
+</div>
+
+<!-- problem picker: list every component, tap one to see its steps -->
+<div id="diagList" class="panel hidden">
+  <button class="x" data-close="diagList">✕</button>
+  <h2>Select a problem</h2>
+  <div id="diagListItems" class="diaglist"></div>
 </div>
 
 <!-- component info panel -->

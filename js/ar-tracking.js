@@ -19,7 +19,7 @@ let _sc = null, _scId = null;       // smoothed marker corners (input-side stabi
 const CORNER_SMOOTH = 0.35;         // 0=frozen, 1=raw; low = very steady corners
 const DETECT_MS = 50;      // ~20x/sec — balanced: detects well, stays smooth
 let idCb = () => {};
-const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
+const SMOOTH = 0.5;   // snappy: model sticks tight to the marker (corners already pre-smoothed)
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
 let _hasTarget = false;
 
@@ -129,8 +129,8 @@ function detect() {
       }
     }
   }
-  // keep showing for ~1.2s after the last detection so brief misses don't flicker
-  if (markerGroup.visible && now - lastSeen > 3500) { markerGroup.visible = false; setTrack(false); _sc = null; }
+  // hide quickly when the marker is gone so the model never floats in empty space
+  if (markerGroup.visible && now - lastSeen > 800) { markerGroup.visible = false; setTrack(false); _sc = null; }
 }
 
 function applyPose(rot, t) {
@@ -143,8 +143,8 @@ function applyPose(rot, t) {
 
 // Deadzone: hold still unless the marker really moved. Kills the per-frame
 // tremor from a small/low-res marker (corners wobble a few px each frame).
-const DEAD_POS = MODEL_SIZE * 0.05;          // ignore position jitter under ~5% of marker size
-const DEAD_ROT = 0.04;                        // ignore rotation jitter under ~2.3°
+const DEAD_POS = MODEL_SIZE * 0.015;         // tiny deadzone — sticks closely to the marker
+const DEAD_ROT = 0.015;                       // ~0.9° — barely any, so it tracks rotation tightly
 function smooth() {
   if (_hasTarget && markerGroup.visible) {
     if (markerGroup.position.distanceTo(_tp) > DEAD_POS)
