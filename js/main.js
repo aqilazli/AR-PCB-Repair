@@ -44,7 +44,7 @@ onMarkerId((id) => {
   contentGroup.visible = true;
   buildHotspots(board.components);
   if (board.glb && board.glb !== lastGlb) { setModel(board.glb); lastGlb = board.glb; }
-  $('scanHint').textContent = board.name + ' — tap a component or start diagnosis';
+  $('scanHint').textContent = board.name + ' — tap a red point to diagnose it';
 });
 let lastGlb = 'assets/3d/pcb.glb';
 

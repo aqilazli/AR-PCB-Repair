@@ -59,11 +59,33 @@ export async function startCamera() {
   return false;
 }
 
+// Tolerances for poor prints. Library defaults: threshConstant 7, polyEpsilon 0.05.
+const ADAPT_C  = 4;     // lower = tolerate faded/streaky black ink (more lenient threshold)
+const POLY_EPS = 0.06;  // higher = tolerate slightly warped / non-square markers
+const MIN_LEN  = 8;     // min edge length (px) — slightly lower catches smaller markers
+
 export function startTracking() {
   try {
     detector = new AR.Detector({ dictionaryName: 'ARUCO' });
     posit    = new POS.Posit(MODEL_SIZE, 0);
+    tuneDetector(detector);   // make it forgiving of faded ink + warped paper
   } catch (e) { toast('AR init failed: ' + e.message); }
+}
+
+// Override the detector's hardcoded pipeline with more forgiving parameters —
+// the js-aruco2 equivalent of OpenCV's adaptiveThreshConstant / polygonalApproxAccuracyRate.
+function tuneDetector(d) {
+  if (!window.CV) return;
+  const CV = window.CV;
+  d.detect = function (image) {
+    CV.grayscale(image, this.grey);
+    CV.adaptiveThreshold(this.grey, this.thres, 2, ADAPT_C);   // lenient on faded ink
+    this.contours = CV.findContours(this.thres, this.binary);
+    this.candidates = this.findCandidates(this.contours, image.width * 0.01, POLY_EPS, MIN_LEN);
+    this.candidates = this.clockwiseCorners(this.candidates);
+    this.candidates = this.notTooNear(this.candidates, 10);
+    return this.findMarkers(this.grey, this.candidates, 49);
+  };
 }
 
 function detect() {

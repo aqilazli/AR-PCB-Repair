@@ -11,8 +11,10 @@ import { openInfo } from './ui-info.js';
 let diag = {}, node = 'start';
 
 export function initSOP() {
-  $('diagBtn').addEventListener('click', () => { diag = buildDiag(state.board || {}); node = 'start'; render(); $('sop').classList.remove('hidden'); });
-  $('sopRestart').addEventListener('click', () => { node = 'start'; render(); });
+  // The old "Start Diagnosis" button (walked every component) is gone — tapping a
+  // point now opens that one component's steps. Keep restart wired just in case.
+  const r = $('sopRestart');
+  if (r) r.addEventListener('click', () => { node = 'start'; render(); });
 }
 
 // Tap a hotspot → diagnose ONLY that component (its question, then its fix).
