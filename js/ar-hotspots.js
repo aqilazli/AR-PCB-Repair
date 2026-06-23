@@ -18,6 +18,7 @@ export function buildHotspots(components) {
     const g = new THREE.Group();
     // x = left/right, y = forward/back on the board, z = height above the board
     g.position.set(cmp.x*MODEL_SIZE, (cmp.z||0)*MODEL_SIZE, -cmp.y*MODEL_SIZE);
+    g.rotation.x = -Math.PI/2;   // lay the dot/ring FLAT on the board (not standing)
     const disc = new THREE.Mesh(
       new THREE.CircleGeometry(MODEL_SIZE*0.018, 24),
       new THREE.MeshBasicMaterial({ color:0xff3b30, transparent:true, opacity:0.95, side:THREE.DoubleSide }));
