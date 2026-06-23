@@ -14,6 +14,7 @@ const dCanvas = $('detect');
 const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
+let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
 const DETECT_MS = 80;      // run heavy detection ~12x/sec, not every frame
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
@@ -68,12 +69,14 @@ function detect() {
       if (pose) {
         applyPose(pose.bestRotation, pose.bestTranslation);
         markerGroup.visible = true; lastSeen = now; setTrack(true);
-        if (m.id !== lastId) { lastId = m.id; idCb(m.id); }
+        // only switch board after the SAME id is seen twice (kills misread blink)
+        if (m.id === candId) candCount++; else { candId = m.id; candCount = 1; }
+        if (candCount >= 2 && m.id !== lastId) { lastId = m.id; idCb(m.id); }
       }
     }
   }
   // keep showing for ~1.2s after the last detection so brief misses don't flicker
-  if (markerGroup.visible && now - lastSeen > 2200) { markerGroup.visible = false; setTrack(false); }
+  if (markerGroup.visible && now - lastSeen > 3500) { markerGroup.visible = false; setTrack(false); }
 }
 
 function applyPose(rot, t) {

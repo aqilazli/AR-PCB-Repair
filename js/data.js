@@ -30,7 +30,16 @@ window.DEFAULT_BOARDS = {
         exp:'image on screen', meas:'no signal', fix:'Try another cable/monitor; reflow the HDMI connector pins.' },
       { id:'gpio', name:'GPIO Header (40-pin)', x:0.05, y:-0.32,
         fault:'PIN NOT WORKING', desc:'40-pin general-purpose header for add-on boards.',
-        exp:'3.3 V on pin 1', meas:'0 V', fix:'Check for bent/shorted pins; verify the 3.3V rail; reflow the header.' }
+        exp:'3.3 V on pin 1', meas:'0 V', fix:'Check for bent/shorted pins; verify the 3.3V rail; reflow the header.' },
+      { id:'d5', name:'D5 — TVS Diode (SMBJ5.0A)', x:-0.30, y:0.05,
+        fault:'SHORTED', desc:'Over-voltage protection diode near the power input. A surge can short it, killing the 5V rail.',
+        exp:'open / blocking', meas:'0.3 Ω short', fix:'Remove or replace D5; check the micro-USB input for damage.' },
+      { id:'pmic', name:'MXL7704 — Power Mgmt IC', x:-0.12, y:0.00,
+        fault:'NO 3.3V', desc:'Generates the 1.2V / 1.8V / 3.3V rails for the whole board.',
+        exp:'3.30 V out', meas:'0.00 V', fix:'Reflow the PMIC pins; verify 5V at the power input; replace if dead.' },
+      { id:'cpu', name:'BCM2837 — Quad-Core CPU', x:0.10, y:-0.02,
+        fault:'OVERHEAT', desc:'Main processor in the centre of the board (Raspberry logo).',
+        exp:'< 70 °C', meas:'93 °C', fix:'Check rails for shorts before powering; inspect for solder bridges.' }
     ]
     // No custom `diag`: the app auto-builds the diagnostic from the components
     // above, so every question maps to a labelled point on the board.
