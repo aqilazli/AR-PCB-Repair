@@ -59,7 +59,7 @@ export async function startCamera() {
 
 export function startTracking() {
   try {
-    detector = new AR.Detector({ dictionaryName: 'ARUCO_4X4_1000' });   // 6x6 grid, biggest cells, easiest detect
+    detector = new AR.Detector({ dictionaryName: 'ARUCO' });
     posit    = new POS.Posit(MODEL_SIZE, 0);
   } catch (e) { toast('AR init failed: ' + e.message); }
 }

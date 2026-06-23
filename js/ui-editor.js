@@ -50,7 +50,7 @@ export function initEditor() {
     if (editId == null) { toast('Select or add a board first'); return; }
     const id = parseInt(editId, 10);
     try {
-      const svg = new window.AR.Dictionary('ARUCO_4X4_1000').generateSVG(id);   // matches the detector
+      const svg = new window.AR.Dictionary('ARUCO').generateSVG(id);   // matches the detector
       download('marker_id' + id + '.svg', svg, 'image/svg+xml');
       toast('Marker id ' + id + ' downloaded — print it for this board');
     } catch (e) { toast('Marker error: ' + e.message); }
