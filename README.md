@@ -92,6 +92,12 @@ webapp/
 └── README.md
 ```
 
+## Architecture
+
+![Application pipeline — five-layer architecture](docs/pipeline.png)
+
+*Five-layer pipeline: the live camera feed (input) is analysed by the js-aruco2 detector (tracking), whose marker pose becomes a camera matrix used by three.js to render the 3D board model and component hotspots (rendering). A data layer supplies the component fault data, diagnostic decision tree and impact factors, feeding the interaction & output layer — the AR overlay, tap-to-inspect panel, diagnostic step bar and SDG-12 impact dashboard.*
+
 ## How it works (technical)
 - **Tracking:** `js-aruco2` detects the ARUCO marker each frame and returns its corners.
 - **Stability:** the marker **id is locked** (transient misreads ignored) and the **corners are smoothed**
