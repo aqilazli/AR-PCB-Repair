@@ -15,7 +15,7 @@ const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
-const DETECT_MS = 80;      // run heavy detection ~12x/sec, not every frame
+const DETECT_MS = 45;      // detect ~22x/sec for a better chance to catch the marker
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
@@ -27,8 +27,10 @@ export async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('No camera API — open over HTTPS'); return false;
   }
-  const hi = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+  const hi = { width: { ideal: 2560 }, height: { ideal: 1440 } };   // ask for max; phone grants what it can
+  const af = [{ focusMode: 'continuous' }];                          // keep the marker in focus
   const tries = [
+    { video: { facingMode: { exact: 'environment' }, ...hi, advanced: af }, audio: false },
     { video: { facingMode: { exact: 'environment' }, ...hi }, audio: false },
     { video: { facingMode: 'environment', ...hi }, audio: false },
     { video: { facingMode: 'environment' }, audio: false },
@@ -37,7 +39,16 @@ export async function startCamera() {
   let lastErr;
   for (const c of tries) {
     try {
-      video.srcObject = await navigator.mediaDevices.getUserMedia(c);
+      const stream = await navigator.mediaDevices.getUserMedia(c);
+      video.srcObject = stream;
+      // best-effort continuous autofocus if the camera supports it
+      try {
+        const track = stream.getVideoTracks()[0];
+        if (track.getCapabilities && track.getCapabilities().focusMode &&
+            track.getCapabilities().focusMode.includes('continuous')) {
+          await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+        }
+      } catch (e) {}
       await video.play().catch(()=>{});
       return true;
     } catch (e) { lastErr = e; }
@@ -59,7 +70,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = Math.min(video.videoWidth || 1280, 1280);   // more pixels = small markers decode
+    const dw = Math.min(video.videoWidth || 1280, 1920);   // process near-full res = better range
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
