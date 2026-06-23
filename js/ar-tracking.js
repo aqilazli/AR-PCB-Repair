@@ -16,7 +16,7 @@ const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 const DETECT_MS = 80;      // run heavy detection ~12x/sec, not every frame
 let idCb = () => {};
-const SMOOTH = 0.3;    // snappier popout while still damping shake
+const SMOOTH = 0.16;   // more damping = stable (first lock still snaps instantly)
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
 let _hasTarget = false;
 
