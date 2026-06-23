@@ -17,7 +17,7 @@ let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
 let _sc = null, _scId = null;       // smoothed marker corners (input-side stabilization)
 const CORNER_SMOOTH = 0.35;         // 0=frozen, 1=raw; low = very steady corners
-const DETECT_MS = 55;      // ~18x/sec — bit slower decode at 1080p so the UI stays smooth
+const DETECT_MS = 75;      // ~13x/sec — heavy decode runs less often = render stays smooth (no lag)
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
@@ -72,7 +72,7 @@ function detect() {
   // heavy decode throttled (~12x/sec); the cheap visibility check runs every frame
   if (now - lastDetect >= DETECT_MS && video.readyState === video.HAVE_ENOUGH_DATA) {
     lastDetect = now;
-    const dw = video.videoWidth || 1280;   // decode at NATIVE video size — no downscale, no conflict
+    const dw = Math.min(video.videoWidth || 1280, 1280);   // decode capped at 1280 = fast on phone, frequent scans
     const dh = Math.round(dw * video.videoHeight / video.videoWidth);
     if (dCanvas.width !== dw) { dCanvas.width = dw; dCanvas.height = dh; posit.focalLength = dw; }
     dCtx.drawImage(video, 0, 0, dw, dh);
