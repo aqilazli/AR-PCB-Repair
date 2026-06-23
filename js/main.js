@@ -5,7 +5,7 @@ import { $, toast } from './utils.js';
 import { state } from './state.js';
 import * as Lib from './library.js';
 import { startRenderLoop, contentGroup } from './ar-core.js';
-import { loadModel, setModel } from './ar-model.js';
+import { loadModel, setModel, resetView } from './ar-model.js';
 import { buildHotspots } from './ar-hotspots.js';
 import { startCamera, startTracking, onMarkerId } from './ar-tracking.js';
 import { initControls, onTap } from './ar-controls.js';
@@ -66,6 +66,7 @@ $('helpBtn').addEventListener('click', () => $('help').classList.remove('hidden'
 $('settingsBtn').addEventListener('click', () => $('settings').classList.remove('hidden'));
 document.querySelectorAll('#settings .menu').forEach(b =>
   b.addEventListener('click', () => $('settings').classList.add('hidden')));
+$('mResetView').addEventListener('click', () => { resetView(); toast('View reset'); });
 $('mAbout').addEventListener('click', () => $('about').classList.remove('hidden'));
 $('mHelp').addEventListener('click', () => $('help').classList.remove('hidden'));
 document.querySelectorAll('[data-close]').forEach(b =>

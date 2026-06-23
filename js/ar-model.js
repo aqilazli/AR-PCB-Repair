@@ -11,7 +11,6 @@ import { contentGroup, camera, MODEL_SIZE, addFrameTask } from './ar-core.js';
 import { toast } from './utils.js';
 
 let boardModel = null, baseScaleNum = 1, userScale = 1;
-const baseQuat    = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI/2, 0, 0));
 const userEuler   = new THREE.Euler();   // eased current rotation
 const targetEuler = new THREE.Euler();   // drag target
 const _q = new THREE.Quaternion();
@@ -30,14 +29,27 @@ export function loadModel(url = 'assets/3d/pcb.glb') {
   const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
   loader.load(url, (gltf) => {
     boardModel = gltf.scene;
-    const box = new THREE.Box3().setFromObject(boardModel);
+    let box = new THREE.Box3().setFromObject(boardModel);
     const size = box.getSize(new THREE.Vector3());
-    const c    = box.getCenter(new THREE.Vector3());
-    boardModel.position.sub(c);
-    baseScaleNum = (MODEL_SIZE*1.4) / Math.max(size.x, size.y, size.z);
+
+    // Auto lay-flat: rotate so the THINNEST axis (the PCB's thickness) points UP (Y).
+    // This makes any GLB lie flat on the marker regardless of how it was exported,
+    // so the x (right) / y (front-back) / z (height) point axes always match.
+    if (size.y <= size.x && size.y <= size.z) {
+      // already flat (thinnest = Y)
+    } else if (size.z <= size.x && size.z <= size.y) {
+      boardModel.rotation.x = -Math.PI/2;   // thinnest = Z -> bring to Y
+    } else {
+      boardModel.rotation.z =  Math.PI/2;   // thinnest = X -> bring to Y
+    }
+
+    // recenter + scale AFTER orienting
+    box = new THREE.Box3().setFromObject(boardModel);
+    const c2 = box.getCenter(new THREE.Vector3());
+    const s2 = box.getSize(new THREE.Vector3());
+    boardModel.position.sub(c2);
+    baseScaleNum = (MODEL_SIZE*1.4) / Math.max(s2.x, s2.y, s2.z);
     boardModel.scale.setScalar(baseScaleNum);
-    boardModel.quaternion.copy(baseQuat);          // fixed lay-flat; user transform is on contentGroup
-    boardModel.position.y = MODEL_SIZE*0.05;
     contentGroup.add(boardModel);
   }, undefined, () => toast('Model load failed'));
 }
@@ -45,6 +57,7 @@ export function loadModel(url = 'assets/3d/pcb.glb') {
 // input → model transforms (called by ar-controls.js)
 export function dragRotate(dx, dy, sens) { targetEuler.y += dx*sens; targetEuler.x += dy*sens; }
 export function zoomBy(mult) { userScale = Math.max(0.4, Math.min(3, userScale*mult)); }
+export function resetView() { userEuler.set(0,0,0); targetEuler.set(0,0,0); userScale = 1; }
 
 // Tap-to-place calibration: project a screen tap onto the board model and
 // return the component-space {x,y} (range about -0.5..0.5), or null if it
