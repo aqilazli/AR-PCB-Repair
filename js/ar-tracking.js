@@ -25,6 +25,12 @@ let _hasTarget = false;
 
 export function onMarkerId(cb) { idCb = cb; }
 
+// Tell the tracker which ids are real boards, so a misread id can never win the
+// lock (the model only pops for a known marker, never a noise id).
+let knownIds = null;
+export function setKnownIds(arr) { knownIds = arr && arr.length ? new Set(arr.map(String)) : null; }
+const isKnown = (id) => !knownIds || knownIds.has(String(id));
+
 export async function startCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     toast('No camera API — open over HTTPS'); return false;
@@ -66,9 +72,9 @@ const MIN_LEN  = 8;     // min edge length (px) — slightly lower catches small
 
 export function startTracking() {
   try {
-    // maxHammingDistance:1 = strict matching → a borderline read is REJECTED,
-    // not mis-decoded into a wrong id (kills the 100→180→… id flipping).
-    detector = new AR.Detector({ dictionaryName: 'ARUCO', maxHammingDistance: 1 });
+    // default tolerance so faded/warped prints still decode; the id-LOCK below
+    // (not strict hamming) is what absorbs the 100→180→… misread flipping.
+    detector = new AR.Detector({ dictionaryName: 'ARUCO' });
     posit    = new POS.Posit(MODEL_SIZE, 0);
     tuneDetector(detector);   // make it forgiving of faded ink + warped paper
   } catch (e) { toast('AR init failed: ' + e.message); }
@@ -114,11 +120,13 @@ function detect() {
       // ID LOCK: ignore single-frame id flips. Acquire after a few same reads;
       // once locked, only switch if a NEW id persists for many frames.
       if (lockedId == null) {
-        if (m.id === challenger) challengeCount++; else { challenger = m.id; challengeCount = 1; }
-        if (challengeCount >= 3) { lockedId = m.id; challenger = null; challengeCount = 0; }
+        if (isKnown(m.id)) {                         // only a real board id can win the lock
+          if (m.id === challenger) challengeCount++; else { challenger = m.id; challengeCount = 1; }
+          if (challengeCount >= 3) { lockedId = m.id; challenger = null; challengeCount = 0; }
+        }
       } else if (m.id === lockedId) {
         challenger = null; challengeCount = 0;
-      } else {
+      } else if (isKnown(m.id)) {                     // switch only to another real board
         if (m.id === challenger) challengeCount++; else { challenger = m.id; challengeCount = 1; }
         if (challengeCount >= 10) { lockedId = m.id; challenger = null; challengeCount = 0; }
       }

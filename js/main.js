@@ -7,7 +7,7 @@ import * as Lib from './library.js';
 import { startRenderLoop, contentGroup } from './ar-core.js';
 import { loadModel, setModel, resetView } from './ar-model.js';
 import { buildHotspots } from './ar-hotspots.js';
-import { startCamera, startTracking, onMarkerId } from './ar-tracking.js';
+import { startCamera, startTracking, onMarkerId, setKnownIds } from './ar-tracking.js';
 import { initControls, onTap } from './ar-controls.js';
 import { openInfo, initInfo } from './ui-info.js';
 import { initSOP } from './ui-sop.js';
@@ -19,6 +19,7 @@ loadModel();
 initControls();
 onTap(openInfo);   // tap a point → that component's fault + numbered steps (scrollable)
 initInfo(); initSOP(); initDashboard(); initEditor();
+setKnownIds(Lib.getBoardIds());   // only real board markers can lock (ignore misread ids)
 startRenderLoop();
 
 // ---- board switching by marker id ----
