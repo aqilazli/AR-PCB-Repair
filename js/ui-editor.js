@@ -55,6 +55,7 @@ export function initEditor() {
       toast('Marker id ' + id + ' downloaded — print it for this board');
     } catch (e) { toast('Marker error: ' + e.message); }
   });
+  $('edCopyPos').addEventListener('click', copyPositions);
   $('edExportJson').addEventListener('click', () => download('pcb-library.json', Lib.exportJSON(), 'application/json'));
   $('edExportCsv').addEventListener('click', () => download('pcb-library.csv', Lib.exportCSV(), 'text/csv'));
   $('edImport').addEventListener('change', importFile);
@@ -159,6 +160,21 @@ function importFile(e) {
   r.onload = () => { try { Lib.importJSON(r.result); editId = Lib.getBoardIds()[0]; render(); refreshAR(); toast('Library imported'); }
                      catch (err) { toast('Invalid JSON: ' + err.message); } };
   r.readAsText(f); e.target.value = '';
+}
+
+// Copy the current board's placed coordinates to the clipboard so they can be
+// baked into the bundled defaults (data.js) = permanent for everyone, even in
+// incognito (localStorage is wiped there; only the shipped defaults survive).
+function copyPositions() {
+  const b = Lib.getBoard(editId);
+  if (!b) { toast('Select a board first'); return; }
+  const lines = (b.components || []).map(c =>
+    `${c.id}: x:${(+c.x).toFixed(3)}, y:${(+c.y).toFixed(3)}, z:${(+(c.z||0)).toFixed(3)}`);
+  const txt = `board id ${editId}\n` + lines.join('\n');
+  const done = () => toast('Positions copied — paste them to bake in permanently');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(done, () => { prompt('Copy these:', txt); });
+  } else { prompt('Copy these:', txt); }
 }
 
 // Tap-to-place: hide the editor, let the user tap the real component on the

@@ -80,8 +80,8 @@ function detect() {
     // LIVE DEBUG: what the detector actually sees, every scan
     const md = $('midDisplay');
     if (md) md.textContent = markers.length
-      ? ('detected id: ' + markers.map(m => m.id).join(',') + '  (cam ' + (video.videoWidth||'?') + 'px)')
-      : ('no marker  (cam ' + (video.videoWidth||'?') + 'px)');
+      ? ('detected id: ' + markers.map(m => m.id).join(','))
+      : 'no marker';
     if (markers.length) {
       const m = markers[0];
       // SMOOTH THE CORNERS (input) before pose — posit is nonlinear, so a few
