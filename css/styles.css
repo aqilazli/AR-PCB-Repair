@@ -15,10 +15,11 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 .screen { position:fixed; inset:0; z-index:30; display:flex; align-items:center; justify-content:center;
   background:radial-gradient(circle at 50% 30%, #16324f, #0b0e13 70%); padding:20px; overflow:hidden; }
 .intro-bg { position:absolute; inset:0; background-size:cover; background-position:center; z-index:0; }
-.intro-bg.b1 { background-image:url('assets/BG1.PNG'); }
-.intro-bg.b2 { background-image:url('assets/BG2.PNG'); opacity:0; animation:bgXfade 12s ease-in-out infinite; }
-@keyframes bgXfade { 0%,40%{opacity:0} 50%,90%{opacity:1} 100%{opacity:0} }
-.intro-shade { position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, #0b0e13aa, #0b0e13dd); }
+.intro-bg.b1 { background-image:url('../assets/BG1.PNG'); }
+.intro-bg.b2 { background-image:url('../assets/BG2.PNG'); mix-blend-mode:screen;
+  opacity:0.5; animation:bgXfade 14s ease-in-out infinite; }
+@keyframes bgXfade { 0%,100%{opacity:0.25} 50%{opacity:0.75} }
+.intro-shade { position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, #0b0e1344, #0b0e13bb); }
 .intro-card { position:relative; z-index:2; max-width:420px; text-align:center; }
 .sdg-badge { display:inline-block; background:#2e7d32; color:#fff; font-size:12px; font-weight:600;
   padding:5px 12px; border-radius:20px; margin-bottom:16px; }
@@ -37,6 +38,8 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 .btn.primary { background:#2e7d32; color:#fff; }
 .btn.ghost { background:transparent; color:#9fb3c8; border:1px solid #2a3a4d; }
 .btn.small { background:#2e7d32; color:#fff; width:auto; padding:10px 16px; font-size:14px; }
+.btn.menu { display:block; width:100%; text-align:left; background:#13202e; border:1px solid #2a3a4d;
+  margin-top:8px; padding:14px 16px; font-size:15px; }
 
 /* ---- HUD ---- */
 #hud { position:fixed; inset:0; z-index:10; pointer-events:none; }
@@ -51,18 +54,18 @@ html,body { height:100%; overflow:hidden; font-family:'Segoe UI',system-ui,sans-
 .iconbtn { background:#13202e99; border:1px solid #2a3a4d; color:#fff; width:40px; height:40px;
   border-radius:10px; font-size:18px; cursor:pointer; }
 
-.mid { position:fixed; top:52px; left:14px; z-index:12; font-size:12px; color:#9fb3c8;
+.mid { position:fixed; top:66px; left:14px; z-index:12; font-size:12px; color:#9fb3c8;
   background:#000a; padding:3px 10px; border-radius:12px; }
 /* scan viewfinder */
-.scanframe { position:fixed; top:50%; left:50%; width:64vw; max-width:340px; aspect-ratio:1;
+.scanframe { position:fixed; top:50%; left:50%; width:48vw; max-width:250px; aspect-ratio:1;
   transform:translate(-50%,-55%); z-index:11; pointer-events:none; }
-.scanframe .c { position:absolute; width:34px; height:34px; border:3px solid #4ea8ff; }
+.scanframe .c { position:absolute; width:28px; height:28px; border:3px solid #ffffff; }
 .scanframe .tl { top:0; left:0; border-right:none; border-bottom:none; }
 .scanframe .tr { top:0; right:0; border-left:none; border-bottom:none; }
 .scanframe .bl { bottom:0; left:0; border-right:none; border-top:none; }
 .scanframe .br { bottom:0; right:0; border-left:none; border-top:none; }
 .scanframe .scanline { position:absolute; left:6%; right:6%; height:2px; top:0;
-  background:linear-gradient(90deg, transparent, #4ea8ff, transparent);
+  background:linear-gradient(90deg, transparent, #ffffff, transparent);
   animation:scanmove 2s ease-in-out infinite; }
 @keyframes scanmove { 0%{top:4%} 50%{top:94%} 100%{top:4%} }
 .scanhint { position:fixed; top:calc(50% + 22vh); left:50%; transform:translate(-50%,-50%);

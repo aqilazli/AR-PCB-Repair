@@ -16,7 +16,7 @@ export function updateDash() {
 }
 
 export function initDashboard() {
-  $('dashBtn').addEventListener('click', () => $('dash').classList.remove('hidden'));
+  $('mDash').addEventListener('click', () => $('dash').classList.remove('hidden'));
   setInterval(() => {                       // simulated live board telemetry
     $('gTemp').textContent = (42 + Math.random()*8).toFixed(1);
     $('gVolt').textContent = (3.25 + Math.random()*0.12).toFixed(2);

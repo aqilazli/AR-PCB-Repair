@@ -15,7 +15,7 @@ import { setPlaceMode } from './ar-controls.js';
 let editId = null;   // board currently being edited
 
 export function initEditor() {
-  $('editorBtn').addEventListener('click', () => { editId = state.boardId || Lib.getBoardIds()[0]; render(); $('editor').classList.remove('hidden'); });
+  $('mEditor').addEventListener('click', () => { editId = state.boardId || Lib.getBoardIds()[0]; render(); $('editor').classList.remove('hidden'); });
 
   $('edAddBoard').addEventListener('click', () => {
     const id = prompt('New board ArUco marker id (a number):');

@@ -31,9 +31,9 @@ onMarkerId((id) => {
     unknownTimer = setTimeout(() => {
       state.boardId = null; state.board = null;
       buildHotspots([]); contentGroup.visible = false;
-      $('scanHint').textContent = 'Unknown marker (id ' + id + ') — please scan a registered board';
+      $('scanHint').textContent = 'Unknown marker. Scan another board.';
       $('scanHint').style.opacity = 1;
-      toast('This ArUco marker is not in the library');
+      toast('Unknown marker');
     }, 800);
     return;
   }
@@ -61,10 +61,16 @@ $('startBtn').addEventListener('click', async () => {
   startTracking();
 });
 $('helpBtn').addEventListener('click', () => $('help').classList.remove('hidden'));
-$('aboutBtn').addEventListener('click', () => $('about').classList.remove('hidden'));
+
+// settings menu: one button opens the menu; each item closes it then opens its panel
+$('settingsBtn').addEventListener('click', () => $('settings').classList.remove('hidden'));
+document.querySelectorAll('#settings .menu').forEach(b =>
+  b.addEventListener('click', () => $('settings').classList.add('hidden')));
+$('mAbout').addEventListener('click', () => $('about').classList.remove('hidden'));
+$('mHelp').addEventListener('click', () => $('help').classList.remove('hidden'));
 document.querySelectorAll('[data-close]').forEach(b =>
   b.addEventListener('click', () => $(b.dataset.close).classList.add('hidden')));
-$('schematicBtn').addEventListener('click', () => {
+$('mSchem').addEventListener('click', () => {
   const url = (state.board && state.board.schematic) || '';
   if (!url) { toast('No schematic for this board'); return; }
   $('schematicFrame').src = url;

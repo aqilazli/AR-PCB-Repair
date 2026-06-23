@@ -37,10 +37,7 @@
   <div class="topbar">
     <div class="logo">PCB <span>AR</span></div>
     <div id="trackPill" class="pill lost">● Searching…</div>
-    <button class="iconbtn" id="dashBtn" title="Impact dashboard">📊</button>
-    <button class="iconbtn" id="schematicBtn" title="Board schematic">📐</button>
-    <button class="iconbtn" id="editorBtn" title="Edit board library">📝</button>
-    <button class="iconbtn" id="aboutBtn" title="About & SDG">ℹ️</button>
+    <button class="iconbtn" id="settingsBtn" title="Menu">⚙️</button>
   </div>
 
   <div id="midDisplay" class="mid">marker id: —</div>
@@ -159,6 +156,17 @@
       <input id="edImport" type="file" accept=".json" hidden></label>
     <button class="btn small ghost" id="edReset">Reset</button>
   </div>
+</div>
+
+<!-- settings menu -->
+<div id="settings" class="panel hidden">
+  <button class="x" data-close="settings">✕</button>
+  <h2>⚙️ Menu</h2>
+  <button class="btn small menu" id="mDash">📊 Impact Dashboard</button>
+  <button class="btn small menu" id="mSchem">📐 Board Schematic</button>
+  <button class="btn small menu" id="mEditor">📝 Board Library</button>
+  <button class="btn small menu" id="mAbout">ℹ️ About &amp; SDG</button>
+  <button class="btn small menu" id="mHelp">❔ How it works</button>
 </div>
 
 <!-- about / SDG panel -->
