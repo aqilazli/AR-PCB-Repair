@@ -37,24 +37,32 @@ Open `https://<you>.github.io/<repo>/` on your phone.
 
 ## Set up the marker
 
-The app uses the **ARUCO_MIP_36h12** dictionary (250 unique ids → up to 250 boards).
-Each board uses one id; the prototype's Raspberry Pi is **id 0**.
+The app uses the **ARUCO** dictionary (1024 unique ids → up to 1024 boards).
+Each board uses one id; the prototype's Raspberry Pi is **id 100** (a second
+balanced marker, **id 23**, maps to the same board so the two can be compared).
 
-1. Open **`marker_id0.svg`** in a browser and print it (`marker_id1.svg` is a spare id 1).
+> **Marker choice matters.** Use a feature-rich, balanced id (mixed black/white
+> cells) such as 100 or 23. Low ids like 0 render as a near-solid-black square and
+> detect poorly.
+
+1. Print **`marker_id100_PRINT.svg`** (and/or `marker_id23_PRINT.svg`). These have a
+   built-in **white quiet zone** — the white border is how the detector finds the marker.
 2. Generate more ids in the project root: `node generate_marker.js <id>` → `marker_id<id>.svg`.
-3. Print on paper (not shown on a screen), keep the white border, make it big (≥6 cm),
-   and place it flat on or beside the board, fully visible. Bigger = steadier.
+3. Print on paper (not a screen), **solid ink**, keep it **flat** (glue to card if needed),
+   keep the **white border** (don't cut into the black), good even light, no glare.
+   Size sets the scan distance — small marker = scan close, bigger = scan from further.
 
 ---
 
 ## Using the app
 
-1. Open the app link, tap **Start AR Repair**, allow the camera.
-2. Point at the board with the marker in view → wait for **Board Locked**.
-3. **Tap a glowing component** to see its fault, expected/measured values, and the fix.
-4. Tap **Start Diagnosis** and answer the questions to walk the troubleshooting tree.
-5. Drag with **one finger** to rotate/flip the model, **two fingers** to zoom.
-6. Open **📊** impact dashboard, **📐** schematic, **📝** board-library editor.
+1. Open the app link, tap **Start**, allow the camera.
+2. Point at the board with the marker in view → wait for **Board locked** (readout shows `locked id: 100`).
+3. **Tap a red component point** to see its fault, expected/measured values, and the step-by-step checks.
+4. Tap **🔧 Diagnose** → pick a problem from the list → confirm the symptom → step through each
+   check (**Done — next**) to the fix → **✓ Mark repaired**.
+5. Drag with **one finger** to rotate the model, **two fingers** to zoom.
+6. Open the **⚙️ settings** menu for the impact dashboard, schematic, and board-library editor.
 
 ---
 
@@ -66,29 +74,32 @@ webapp/
 ├── js/
 │   ├── data.js        DEFAULT board library (edit or use the in-app editor)
 │   ├── library.js     board CRUD · localStorage · JSON/CSV export · import
-│   ├── diagnostic.js  builds the SOP decision tree from a board
+│   ├── diagnostic.js  builds the per-component diagnosis wizard from a board
 │   ├── state.js       shared current-board + counters
 │   ├── ar-core.js     three.js scene + render loop
 │   ├── ar-model.js    GLB load · rotate/zoom
 │   ├── ar-hotspots.js component markers + tap hit-test
-│   ├── ar-tracking.js camera + ArUco detect + pose smoothing
+│   ├── ar-tracking.js camera + ArUco detect + id-lock + corner/pose smoothing
 │   ├── ar-controls.js touch input (rotate/zoom/tap)
-│   ├── ui-info.js     component info panel
-│   ├── ui-sop.js      diagnostic step-through
+│   ├── ui-info.js     component info panel (fault + scrollable steps)
+│   ├── ui-sop.js      Diagnose problem list + interactive question wizard
 │   ├── ui-dashboard.js impact dashboard + telemetry
 │   ├── ui-editor.js   board-library editor (📝)
 │   └── main.js        wiring / entry point
 ├── assets/3d/pcb.glb            3D board model (Draco + WebP, ~1 MB)
 ├── assets/docs/*.pdf            board schematics
-├── marker_id0.svg / marker_id1.svg  printable ArUco markers (ARUCO_MIP_36h12)
+├── marker_id100_PRINT.svg / marker_id23_PRINT.svg  printable ArUco markers (ARUCO, with quiet zone)
 └── README.md
 ```
 
 ## How it works (technical)
-- **Tracking:** `js-aruco2` detects the ARUCO_MIP_36h12 marker each frame and returns its corners.
-- **Pose:** `POS.Posit` turns the corners into a 3D rotation + translation; the group is eased onto it (no jitter).
+- **Tracking:** `js-aruco2` detects the ARUCO marker each frame and returns its corners.
+- **Stability:** the marker **id is locked** (transient misreads ignored) and the **corners are smoothed**
+  before pose estimation, so the overlay stays anchored without jitter; only a registered id can lock.
+- **Pose:** `POS.Posit` turns the smoothed corners into a 3D rotation + translation; the group is eased onto it.
 - **Render:** `three.js` places the board model + component hotspots at that pose.
-- **Board switching:** the detected marker **id** selects the board from the library; an unknown id prompts the user to scan a registered board.
+- **Diagnosis:** tapping a point opens that component's fault + steps; the **🔧 Diagnose** wizard walks
+  one problem's checks step by step to the fix.
 - **Education:** the intro + impact dashboard quantify the SDG-12 benefit.
 
 ## Adding / editing a board (no coding)
@@ -99,8 +110,10 @@ The board library is a bundled JSON (`js/data.js`) plus your edits saved in the 
 2. In **📝**: click **+ Board**, enter the **ArUco marker id** and name.
 3. Fill **GLB path** and **Schematic path**, click **Save board info**.
    (Use **Preview GLB file** to test a model in the current session.)
-4. Add each faulty part with **+ Add component** (id, name, x/y, fault, expected,
-   measured, and the **fix** = the repair method). These build the diagnostic flow.
+4. Add each faulty part with **+ Add component** (id, name, fault, expected,
+   measured, and the **fix** = the repair method). Set its position by editing
+   **x / y / z** or with the **📍 Place** tool (tap the real part on screen).
+   Use **📋 Copy positions** to copy coordinates for baking into `data.js`.
 5. Print the marker for that id: `node generate_marker.js <id>` (in the project root).
 6. **⬇ JSON** to back up / share the library, **⬇ CSV** for a spreadsheet view.
    **⬆ Import JSON** restores a saved library. **Reset** returns to bundled defaults.
