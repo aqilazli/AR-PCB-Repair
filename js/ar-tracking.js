@@ -17,7 +17,7 @@ let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
 let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
 let _sc = null, _scId = null;       // smoothed marker corners (input-side stabilization)
 const CORNER_SMOOTH = 0.35;         // 0=frozen, 1=raw; low = very steady corners
-const DETECT_MS = 75;      // ~13x/sec — heavy decode runs less often = render stays smooth (no lag)
+const DETECT_MS = 50;      // ~20x/sec — balanced: detects well, stays smooth
 let idCb = () => {};
 const SMOOTH = 0.10;   // heavy damping = very stable for small/noisy markers
 const _tp = new THREE.Vector3(), _tq = new THREE.Quaternion(), _eu = new THREE.Euler();
