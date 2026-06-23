@@ -14,8 +14,8 @@ const dCanvas = $('detect');
 const dCtx = dCanvas.getContext('2d', { willReadFrequently: true });
 
 let detector = null, posit = null, lastSeen = 0, lastId = null, lastDetect = 0;
-let candId = null, candCount = 0;   // id stabilization (ignore single-frame misreads)
-let _sc = null, _scId = null;       // smoothed marker corners (input-side stabilization)
+let lockedId = null, challenger = null, challengeCount = 0;   // id lock (ignore misread flips)
+let _sc = null;                     // smoothed marker corners (input-side stabilization)
 const CORNER_SMOOTH = 0.22;         // 0=frozen, 1=raw; lower = steadier corners (less dancing)
 const DETECT_MS = 50;      // ~20x/sec — balanced: detects well, stays smooth
 let idCb = () => {};
@@ -66,7 +66,9 @@ const MIN_LEN  = 8;     // min edge length (px) — slightly lower catches small
 
 export function startTracking() {
   try {
-    detector = new AR.Detector({ dictionaryName: 'ARUCO' });
+    // maxHammingDistance:1 = strict matching → a borderline read is REJECTED,
+    // not mis-decoded into a wrong id (kills the 100→180→… id flipping).
+    detector = new AR.Detector({ dictionaryName: 'ARUCO', maxHammingDistance: 1 });
     posit    = new POS.Posit(MODEL_SIZE, 0);
     tuneDetector(detector);   // make it forgiving of faded ink + warped paper
   } catch (e) { toast('AR init failed: ' + e.message); }
@@ -101,36 +103,49 @@ function detect() {
     const markers = detector.detect(dCtx.getImageData(0, 0, dw, dh));
     // LIVE DEBUG: what the detector actually sees, every scan
     const md = $('midDisplay');
-    if (md) md.textContent = markers.length
-      ? ('detected id: ' + markers.map(m => m.id).join(','))
-      : 'no marker';
+    if (md) md.textContent = lockedId != null
+      ? ('locked id: ' + lockedId)
+      : (markers.length ? 'reading…' : 'no marker');
     if (markers.length) {
-      const m = markers[0];
-      // SMOOTH THE CORNERS (input) before pose — posit is nonlinear, so a few
-      // pixels of corner wobble blows up into pose jumps. Averaging the corners
-      // over frames is the real stability fix.
-      const raw = m.corners;
-      if (!_sc || m.id !== _scId) {            // new marker / first sight: snap
-        _sc = raw.map(c => ({ x: c.x, y: c.y })); _scId = m.id;
+      // Prefer the marker matching our locked id; otherwise take the first.
+      let m = markers[0];
+      if (lockedId != null) { const f = markers.find(x => x.id === lockedId); if (f) m = f; }
+
+      // ID LOCK: ignore single-frame id flips. Acquire after a few same reads;
+      // once locked, only switch if a NEW id persists for many frames.
+      if (lockedId == null) {
+        if (m.id === challenger) challengeCount++; else { challenger = m.id; challengeCount = 1; }
+        if (challengeCount >= 3) { lockedId = m.id; challenger = null; challengeCount = 0; }
+      } else if (m.id === lockedId) {
+        challenger = null; challengeCount = 0;
       } else {
-        for (let i = 0; i < 4; i++) {
-          _sc[i].x += (raw[i].x - _sc[i].x) * CORNER_SMOOTH;
-          _sc[i].y += (raw[i].y - _sc[i].y) * CORNER_SMOOTH;
-        }
+        if (m.id === challenger) challengeCount++; else { challenger = m.id; challengeCount = 1; }
+        if (challengeCount >= 10) { lockedId = m.id; challenger = null; challengeCount = 0; }
       }
+
+      // SMOOTH THE CORNERS (input) before pose. Same physical marker every frame,
+      // so keep averaging the same buffer — never reset it on an id misread.
+      const raw = m.corners;
+      if (!_sc) { _sc = raw.map(c => ({ x: c.x, y: c.y })); }
+      else { for (let i = 0; i < 4; i++) {
+        _sc[i].x += (raw[i].x - _sc[i].x) * CORNER_SMOOTH;
+        _sc[i].y += (raw[i].y - _sc[i].y) * CORNER_SMOOTH;
+      } }
       const corners = _sc.map(c => ({ x: c.x - dw/2, y: dh/2 - c.y }));
       const pose = posit.pose(corners);
       if (pose) {
         applyPose(pose.bestRotation, pose.bestTranslation);
         markerGroup.visible = true; lastSeen = now; setTrack(true);
-        // only switch board after the SAME id is seen twice (kills misread blink)
-        if (m.id === candId) candCount++; else { candId = m.id; candCount = 1; }
-        if (candCount >= 2 && m.id !== lastId) { lastId = m.id; idCb(m.id); }
+        // switch board only when the LOCKED id changes (stable)
+        if (lockedId != null && lockedId !== lastId) { lastId = lockedId; idCb(lockedId); }
       }
     }
   }
   // hide quickly when the marker is gone so the model never floats in empty space
-  if (markerGroup.visible && now - lastSeen > 800) { markerGroup.visible = false; setTrack(false); _sc = null; }
+  if (markerGroup.visible && now - lastSeen > 800) {
+    markerGroup.visible = false; setTrack(false);
+    _sc = null; lockedId = null; challenger = null; challengeCount = 0;   // fresh lock next time
+  }
 }
 
 function applyPose(rot, t) {
